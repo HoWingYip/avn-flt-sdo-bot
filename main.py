@@ -1,24 +1,25 @@
 import logging
 import os
+from inspect import cleandoc
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
+from telegram.ext import filters, ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, ConversationHandler
+
+from bcp import add_bcp_handlers
+
+from constants import HELP_MESSAGE
 
 logging.basicConfig(
   format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-  level=logging.INFO
+  level=logging.INFO,
 )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  await context.bot.send_message(
-    chat_id=update.effective_chat.id,
-    text="I'm a bot, please talk to me!",
+  await update.message.reply_text(
+    f"Good day! This is the AVN FLT SDO bot. How may I help you?\n\n{HELP_MESSAGE}"
   )
 
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  await context.bot.send_message(
-    chat_id=update.effective_chat.id,
-    text=f"Non-command message received: {update.message.text}",
-  )
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+  await update.message.reply_text(HELP_MESSAGE)
 
 if __name__ == "__main__":
   application = ApplicationBuilder() \
@@ -28,7 +29,9 @@ if __name__ == "__main__":
   start_handler = CommandHandler("start", start)
   application.add_handler(start_handler)
 
-  echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
-  application.add_handler(echo_handler)
+  help_handler = CommandHandler("help", help)
+  application.add_handler(help_handler)
+
+  add_bcp_handlers(application)
   
   application.run_polling()
