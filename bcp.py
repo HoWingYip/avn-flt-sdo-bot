@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
+from telegram.ext import Application, ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
 from datetime import datetime
 
 from constants import bcp_states
@@ -8,8 +8,8 @@ async def bcp(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["bcp"] = {}
 
   await update.message.reply_text(
-    "You are now starting a Base Command Post Clearance Request. To cancel, send /cancel at any time.\n"
-    "What is your rank and full name? (E.g. PTE Eugene Ong)"
+    "You are now starting a Base Command Post (BCP) clearance request. To cancel, send /cancel at any time.\n"
+    "What is your rank and full name? (E.g. PTE Jay Chou)"
   )
 
   return bcp_states.RANK_NAME
@@ -26,19 +26,22 @@ async def bcp_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def bcp_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
   try:
-    # ensures message is 2 strings separated by a space
-    bcp_date, bcp_time = update.message.text.split(" ")
+    # # ensures message is 2 strings separated by a space
+    # bcp_date, bcp_time = update.message.text.split(" ")
 
-    assert len(bcp_date) == 6 and bcp_date.isdecimal()
-    day, month, year = int(bcp_date[:2]), int(bcp_date[2:4]), 2000 + int(bcp_date[4:])
+    # assert len(bcp_date) == 6 and bcp_date.isdecimal()
+    # day, month, year = int(bcp_date[:2]), int(bcp_date[2:4]), 2000 + int(bcp_date[4:])
     
-    assert len(bcp_time) == 5 and bcp_time.endswith("H") and bcp_time[:-1].isdecimal()
-    bcp_time = bcp_time[:-1]
+    # assert len(bcp_time) == 5 and bcp_time.endswith("H") and bcp_time[:-1].isdecimal()
+    # bcp_time = bcp_time[:-1]
 
-    hour, minute = int(bcp_time[:2]), int(bcp_time[2:])
+    # hour, minute = int(bcp_time[:2]), int(bcp_time[2:])
     
     # below line will raise exception if date is invalid
-    if datetime.now() > datetime(day=day, month=month, year=year, hour=hour, minute=minute):
+    # if datetime.now() > datetime(day=day, month=month, year=year, hour=hour, minute=minute):
+    #   raise ValueError
+
+    if datetime.now() > datetime.strptime(update.message.text, "%d%m%y %H%MH"):
       raise ValueError
   except:
     await update.message.reply_text(
@@ -48,6 +51,9 @@ async def bcp_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return bcp_states.DATE_TIME
   
+  bcp_date, bcp_time = update.message.text.split(" ")
+  bcp_time = bcp_time[:-1]
+
   context.user_data["bcp"]["date"] = bcp_date
   context.user_data["bcp"]["time"] = bcp_time
 
@@ -70,24 +76,28 @@ async def bcp_purpose(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def bcp_additional_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["bcp"]["additional_info"] = update.message.text
-  
+
+  bcp_fields = context.user_data["bcp"]
   await update.message.reply_text(
-    f"BCP request complete. Info: {context.user_data['bcp']}"
+    "BCP clearance request complete.\n"
+    f"Rank/name: {bcp_fields['rank_name']}\n"
+    f"Clearance date and time: {bcp_fields['date']} {bcp_fields['time']}H\n"
+    f"Purpose: {bcp_fields['purpose']}\n"
+    f"Additional info: {bcp_fields['additional_info']}"
   )
   
   return ConversationHandler.END
 
 async def bcp_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  del context.user_data["bcp"]
-
+  # not necessary to delete context.user_data["bcp"]
+  # because it will only be read after all fields are filled out
   await update.message.reply_text(
-    "BCP request cancelled.\n"
+    "BCP clearance request cancelled.\n"
     "Send /help for a list of commands."
   )
-
   return ConversationHandler.END
 
-def add_bcp_handlers(application):
+def add_bcp_handlers(application: Application):
   bcp_handler = ConversationHandler(
     entry_points=[CommandHandler("bcp", bcp)],
     states={

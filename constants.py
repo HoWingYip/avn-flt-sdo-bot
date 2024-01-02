@@ -10,4 +10,4 @@ HELP_MESSAGE = cleandoc("""
 """)
 
 bcp_states = Enum("bcp", ["RANK_NAME", "DATE_TIME", "PURPOSE", "ADDITIONAL_INFO"])
-rso_states = Enum("rso", ["LOCATION", "DATE_TIME", "REASON", "ADDITIONAL_INFO"])
+rso_states = Enum("rso", ["RANK_NAME", "LOCATION", "DATE_TIME", "REASON", "ADDITIONAL_INFO"])

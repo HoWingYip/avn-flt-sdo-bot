@@ -1,10 +1,10 @@
 import logging
 import os
-from inspect import cleandoc
 from telegram import Update
-from telegram.ext import filters, ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, ConversationHandler
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
 from bcp import add_bcp_handlers
+from rso import add_rso_handlers
 
 from constants import HELP_MESSAGE
 
@@ -33,5 +33,6 @@ if __name__ == "__main__":
   application.add_handler(help_handler)
 
   add_bcp_handlers(application)
+  add_rso_handlers(application)
   
   application.run_polling()
