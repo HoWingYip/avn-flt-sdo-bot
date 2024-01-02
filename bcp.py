@@ -1,8 +1,10 @@
 from telegram import Update
 from telegram.ext import Application, ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
-from datetime import datetime
 
 from constants import bcp_states
+from utility.validate_datetime_string import validate_datetime_string
+
+# TODO: remove all echo text after deployment
 
 async def bcp(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["bcp"] = {}
@@ -25,25 +27,9 @@ async def bcp_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
   return bcp_states.DATE_TIME
 
 async def bcp_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  # TODO: use validate_datetime_string
   try:
-    # # ensures message is 2 strings separated by a space
-    # bcp_date, bcp_time = update.message.text.split(" ")
-
-    # assert len(bcp_date) == 6 and bcp_date.isdecimal()
-    # day, month, year = int(bcp_date[:2]), int(bcp_date[2:4]), 2000 + int(bcp_date[4:])
-    
-    # assert len(bcp_time) == 5 and bcp_time.endswith("H") and bcp_time[:-1].isdecimal()
-    # bcp_time = bcp_time[:-1]
-
-    # hour, minute = int(bcp_time[:2]), int(bcp_time[2:])
-    
-    # below line will raise exception if date is invalid
-    # if datetime.now() > datetime(day=day, month=month, year=year, hour=hour, minute=minute):
-    #   raise ValueError
-
-    if datetime.now() > datetime.strptime(update.message.text, "%d%m%y %H%MH"):
-      raise ValueError
+    context.user_data["bcp"]["date"], context.user_data["bcp"]["time"] = \
+      validate_datetime_string(update.message.text)
   except:
     await update.message.reply_text(
       "Invalid date or time. Example of expected format: 010125 1200H\n"
@@ -52,14 +38,8 @@ async def bcp_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return bcp_states.DATE_TIME
   
-  bcp_date, bcp_time = update.message.text.split(" ")
-  bcp_time = bcp_time[:-1]
-
-  context.user_data["bcp"]["date"] = bcp_date
-  context.user_data["bcp"]["time"] = bcp_time
-
   await update.message.reply_text(
-    f"Date is {bcp_date}, time is {bcp_time}.\n" # TODO: remove after deployment
+    f"Date is {context.user_data['bcp']['date']}, time is {context.user_data['bcp']['time']}H.\n"
     "What is the purpose of your BCP clearance request?"
   )
 
@@ -78,6 +58,8 @@ async def bcp_purpose(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def bcp_additional_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["bcp"]["additional_info"] = update.message.text
 
+  # TODO: require user to confirm input before final submission
+  # by sending /confirm after this summary is displayed
   bcp_fields = context.user_data["bcp"]
   await update.message.reply_text(
     "BCP clearance request complete.\n"

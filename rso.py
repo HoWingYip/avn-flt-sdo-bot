@@ -26,21 +26,19 @@ async def rso_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
   return rso_states.LOCATION
 
 async def rso_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  context.user_data["rso"]["location"] = update.message.text,
+  context.user_data["rso"]["location"] = update.message.text
 
   await update.message.reply_text(
     f"RSO location is {update.message.text}.\n"
     "When will you RSO? (E.g. 010125 0800H)\n"
-    # TODO: tell user about RSO timing rules
-    # (e.g. can't request to RSO more than 24h in the future)
   )
 
   return rso_states.DATE_TIME
 
-async def rso_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def rso_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):  
   try:
-    if datetime.now() > datetime.strptime(update.message.text, "%d%m%y %H%MH"):
-      raise ValueError
+    context.user_data["rso"]["date"], context.user_data["rso"]["time"] = \
+      validate_datetime_string(update.message.text)
   except:
     await update.message.reply_text(
       "Invalid date or time. Example of expected format: 010125 1200H\n"
@@ -49,11 +47,8 @@ async def rso_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return rso_states.DATE_TIME
   
-  context.user_data["rso"]["date"], context.user_data["rso"]["time"] = \
-    validate_datetime_string(update.message.text)
-  
   await update.message.reply_text(
-    f"Date is {context.user_data['rso']['date']}, time is {context.user_data['rso']['time']}.\n" # TODO: remove after deployment
+    f"Date is {context.user_data['rso']['date']}, time is {context.user_data['rso']['time']}H.\n"
     "What is your reason for reporting sick outside?"
   )
 
@@ -72,10 +67,13 @@ async def rso_reason(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def rso_additional_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["rso"]["additional_info"] = update.message.text
 
+  # TODO: require user to confirm input before final submission
+  # by sending /confirm after this summary is displayed
   rso_fields = context.user_data["rso"]
   await update.message.reply_text(
     "RSO request complete.\n"
     f"Rank/name: {rso_fields['rank_name']}\n"
+    f"RSO location: {rso_fields['location']}\n"
     f"RSO date and time: {rso_fields['date']} {rso_fields['time']}H\n"
     f"RSO reason: {rso_fields['reason']}\n"
     f"Additional info: {rso_fields['additional_info']}"
