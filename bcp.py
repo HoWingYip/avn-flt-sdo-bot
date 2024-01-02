@@ -25,6 +25,7 @@ async def bcp_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
   return bcp_states.DATE_TIME
 
 async def bcp_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
+  # TODO: use validate_datetime_string
   try:
     # # ensures message is 2 strings separated by a space
     # bcp_date, bcp_time = update.message.text.split(" ")
