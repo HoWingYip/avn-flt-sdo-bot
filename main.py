@@ -1,12 +1,12 @@
 import logging
-import os
+import json
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
-from bcp import add_bcp_handlers
-from rso import add_rso_handlers
+from user.bcp import add_bcp_handlers
+from user.rso import add_rso_handlers
 
-from constants import HELP_MESSAGE
+from utility.constants import HELP_MESSAGE
 
 logging.basicConfig(
   format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -22,17 +22,18 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
   await update.message.reply_text(HELP_MESSAGE)
 
 if __name__ == "__main__":
-  application = ApplicationBuilder() \
-    .token(os.environ["BOT_TOKEN"]) \
-    .build()
+  with open("bot_config.json") as bot_config_file:
+    bot_config = json.load(bot_config_file)
+
+  application = ApplicationBuilder().token(bot_config["bot_token"]).build()
   
-  start_handler = CommandHandler("start", start)
-  application.add_handler(start_handler)
-
-  help_handler = CommandHandler("help", help)
-  application.add_handler(help_handler)
-
+  # user-facing handlers
+  application.add_handler(CommandHandler("start", start))
+  application.add_handler(CommandHandler("help", help))
   add_bcp_handlers(application)
   add_rso_handlers(application)
+
+  # SDO-facing handlers
+  
   
   application.run_polling()

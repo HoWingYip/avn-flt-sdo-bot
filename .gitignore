@@ -1,3 +1,9 @@
+# Telegram bot config file
+bot_config.json
+
+# SQLite databases
+*.sqlite
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

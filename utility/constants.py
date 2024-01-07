@@ -9,5 +9,5 @@ HELP_MESSAGE = cleandoc("""
   /help - Display this list of commands
 """)
 
-bcp_states = Enum("bcp", ["RANK_NAME", "DATE_TIME", "PURPOSE", "ADDITIONAL_INFO"])
-rso_states = Enum("rso", ["RANK_NAME", "LOCATION", "DATE_TIME", "REASON", "ADDITIONAL_INFO"])
+bcp_states = Enum("bcp", ["RANK_NAME", "DATE_TIME", "PURPOSE", "INFO", "CONFIRM"])
+rso_states = Enum("rso", ["RANK_NAME", "LOCATION", "DATE_TIME", "REASON", "INFO", "CONFIRM"])
