@@ -91,8 +91,10 @@ async def rso_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def rso_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
   rso_fields = context.user_data["rso"]
-
-  with DBSession(engine) as db_session:
+  
+  # disable expire_on_commit so we don't need to start another transaction
+  # to load request ID after commit
+  with DBSession(engine, expire_on_commit=False) as db_session:
     rso_request = RSORequest(
       rank_name=rso_fields["rank_name"],
       location=rso_fields["location"],
@@ -121,6 +123,7 @@ async def rso_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
   return ConversationHandler.END
 
 def add_rso_handlers(application: Application):
+  # FIXME: handler should only listen to messages in private chats
   rso_handler = ConversationHandler(
     entry_points=[CommandHandler("rso", rso)],
     states={

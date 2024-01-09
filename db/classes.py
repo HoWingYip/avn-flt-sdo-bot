@@ -1,4 +1,3 @@
-from typing import List
 from sqlalchemy import Text, Float
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -32,3 +31,8 @@ class RSORequest(Base):
 
   def __repr__(self):
     return f"RSORequest(id={self.id!r}, rank_name={self.rank_name!r}, location={self.location!r}, time={self.time!r}, reason={self.reason!r}, info={self.info!r})"
+
+class ChatGroup(Base):
+  __tablename__ = "BotMemberGroup"
+
+  id: Mapped[int] = mapped_column(primary_key=True)

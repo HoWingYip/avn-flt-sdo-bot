@@ -78,7 +78,9 @@ async def bcp_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
   bcp_fields = context.user_data["bcp"]
 
-  with DBSession(engine) as db_session:
+  # disable expire_on_commit so we don't need to start another transaction
+  # to load request ID after commit
+  with DBSession(engine, expire_on_commit=False) as db_session:
     bcp_request = BCPRequest(
       rank_name=bcp_fields["rank_name"],
       time=bcp_fields["time"].timestamp(),
@@ -95,6 +97,7 @@ async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     # TODO: send BCPCR info to all group chats
+    
   
   return ConversationHandler.END
 
@@ -108,6 +111,7 @@ async def bcp_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
   return ConversationHandler.END
 
 def add_bcp_handlers(application: Application):
+  # FIXME: handler should only listen to messages in private chats
   bcp_handler = ConversationHandler(
     entry_points=[CommandHandler("bcp", bcp)],
     states={

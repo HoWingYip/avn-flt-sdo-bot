@@ -5,6 +5,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
 from user.bcp import add_bcp_handlers
 from user.rso import add_rso_handlers
+from sdo.track_chats import add_chat_member_handler
 
 from utility.constants import HELP_MESSAGE
 
@@ -34,6 +35,6 @@ if __name__ == "__main__":
   add_rso_handlers(application)
 
   # SDO-facing handlers
-  
+  add_chat_member_handler(application)
   
   application.run_polling()
