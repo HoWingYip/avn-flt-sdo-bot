@@ -1,7 +1,7 @@
 from telegram import Update
 from telegram.ext import filters, Application, ConversationHandler, CommandHandler, MessageHandler, ContextTypes
 
-from utility.constants import rso_states
+from utility.constants import RSOConversationState
 from utility.validate_datetime_string import validate_datetime_string
 
 from sqlalchemy.orm import Session as DBSession
@@ -16,7 +16,7 @@ async def rso(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "What is your rank and full name? (E.g. PTE Jay Chou)"
   )
 
-  return rso_states.RANK_NAME
+  return RSOConversationState.RANK_NAME
 
 async def rso_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["rso"]["rank_name"] = update.message.text
@@ -26,7 +26,7 @@ async def rso_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "Where will you RSO? (E.g. Ang Mo Kio Polyclinic)"
   )
 
-  return rso_states.LOCATION
+  return RSOConversationState.LOCATION
 
 async def rso_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["rso"]["location"] = update.message.text
@@ -36,7 +36,7 @@ async def rso_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "When will you RSO? (E.g. 010125 0800H)\n"
   )
 
-  return rso_states.DATE_TIME
+  return RSOConversationState.DATE_TIME
 
 async def rso_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):  
   try:
@@ -52,14 +52,14 @@ async def rso_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
       "Note that date and time entered must be after the current time.\n"
       "Please try again."
     )
-    return rso_states.DATE_TIME
+    return RSOConversationState.DATE_TIME
   
   await update.message.reply_text(
     f"Date is {datetime_obj.strftime('%d%m%y')}, time is {datetime_obj.strftime('%H%MH')}.\n"
     "What is your reason for reporting sick outside?"
   )
 
-  return rso_states.REASON
+  return RSOConversationState.REASON
   
 async def rso_reason(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["rso"]["reason"] = update.message.text
@@ -69,7 +69,7 @@ async def rso_reason(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "Do you have any additional information or queries? If not, simply send 'Nil'."
   )
 
-  return rso_states.INFO
+  return RSOConversationState.INFO
 
 async def rso_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["rso"]["info"] = update.message.text
@@ -87,7 +87,7 @@ async def rso_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "To confirm the above information and submit the request, send /confirm. To cancel, send /cancel."
   )
 
-  return rso_states.CONFIRM
+  return RSOConversationState.CONFIRM
 
 async def rso_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
   rso_fields = context.user_data["rso"]
@@ -127,12 +127,12 @@ def add_rso_handlers(application: Application):
   rso_handler = ConversationHandler(
     entry_points=[CommandHandler("rso", rso)],
     states={
-      rso_states.RANK_NAME: [MessageHandler(filters.TEXT & (~filters.COMMAND), rso_rank_name)],
-      rso_states.LOCATION: [MessageHandler(filters.TEXT & (~filters.COMMAND), rso_location)],
-      rso_states.DATE_TIME: [MessageHandler(filters.TEXT & (~filters.COMMAND), rso_date_time)],
-      rso_states.REASON: [MessageHandler(filters.TEXT & (~filters.COMMAND), rso_reason)],
-      rso_states.INFO: [MessageHandler(filters.TEXT & (~filters.COMMAND), rso_info)],
-      rso_states.CONFIRM: [CommandHandler("confirm", rso_confirm)],
+      RSOConversationState.RANK_NAME: [MessageHandler(filters.TEXT & (~filters.COMMAND), rso_rank_name)],
+      RSOConversationState.LOCATION: [MessageHandler(filters.TEXT & (~filters.COMMAND), rso_location)],
+      RSOConversationState.DATE_TIME: [MessageHandler(filters.TEXT & (~filters.COMMAND), rso_date_time)],
+      RSOConversationState.REASON: [MessageHandler(filters.TEXT & (~filters.COMMAND), rso_reason)],
+      RSOConversationState.INFO: [MessageHandler(filters.TEXT & (~filters.COMMAND), rso_info)],
+      RSOConversationState.CONFIRM: [CommandHandler("confirm", rso_confirm)],
     },
     fallbacks=[CommandHandler("cancel", rso_cancel)],
   )

@@ -1,14 +1,23 @@
-from telegram import Update
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
 
-from utility.constants import bcp_states
+from utility.constants import BCPConversationState
 from utility.validate_datetime_string import validate_datetime_string
 
 from sqlalchemy.orm import Session as DBSession
+from sqlalchemy import select
 from db.init_db import engine
-from db.classes import BCPRequest
+from db.classes import BCPRequest, ChatGroup
 
 # TODO: remove all echo text after deployment
+
+def summarize_request(bcp_fields):
+  return (
+    f"Rank/name: {bcp_fields['rank_name']}\n"
+    f"Clearance date and time: {bcp_fields['time'].strftime('%d%m%y %H%MH')}\n"
+    f"Purpose: {bcp_fields['purpose']}\n"
+    f"Additional info: {bcp_fields['info']}"
+  )
 
 async def bcp(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["bcp"] = {}
@@ -18,7 +27,7 @@ async def bcp(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "What is your rank and full name? (E.g. PTE Jay Chou)"
   )
 
-  return bcp_states.RANK_NAME
+  return BCPConversationState.RANK_NAME
 
 async def bcp_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["bcp"]["rank_name"] = update.message.text
@@ -28,7 +37,7 @@ async def bcp_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "When will your BCP clearance start? (E.g. 010125 1200H)"
   )
 
-  return bcp_states.DATE_TIME
+  return BCPConversationState.DATE_TIME
 
 async def bcp_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
   try:
@@ -41,14 +50,14 @@ async def bcp_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
       "Note that date and time entered must be after the current time.\n"
       "Please try again."
     )
-    return bcp_states.DATE_TIME
+    return BCPConversationState.DATE_TIME
   
   await update.message.reply_text(
     f"Date is {datetime_obj.strftime('%d%m%y')}, time is {datetime_obj.strftime('%H%MH')}.\n"
     "What is the purpose of your BCP clearance request?"
   )
 
-  return bcp_states.PURPOSE
+  return BCPConversationState.PURPOSE
 
 async def bcp_purpose(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["bcp"]["purpose"] = update.message.text
@@ -58,7 +67,7 @@ async def bcp_purpose(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "Do you have any additional information or queries? If not, simply send 'Nil'."
   )
 
-  return bcp_states.INFO
+  return BCPConversationState.INFO
 
 async def bcp_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["bcp"]["info"] = update.message.text
@@ -66,14 +75,11 @@ async def bcp_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
   bcp_fields = context.user_data["bcp"]
   await update.message.reply_text(
     "BCP clearance request summary:\n"
-    f"Rank/name: {bcp_fields['rank_name']}\n"
-    f"Clearance date and time: {bcp_fields['time'].strftime('%d%m%y %H%MH')}\n"
-    f"Purpose: {bcp_fields['purpose']}\n"
-    f"Additional info: {bcp_fields['info']}\n\n"
+    f"{summarize_request(bcp_fields)}\n\n"
     "To confirm the above information and submit the request, send /confirm. To cancel, send /cancel."
   )
   
-  return bcp_states.CONFIRM
+  return BCPConversationState.CONFIRM
 
 async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
   bcp_fields = context.user_data["bcp"]
@@ -96,8 +102,22 @@ async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
       "If you wish to carry out more actions, send /help for a list of commands."
     )
 
-    # TODO: send BCPCR info to all group chats
-    
+    select_group_stmt = select(ChatGroup.id)
+    for group_id in db_session.scalars(select_group_stmt):
+      # TODO: add "Acknowledge" and "Action taken" buttons
+      await context.bot.send_message(
+        group_id,
+        text=f"New BCP clearance request from @{update.effective_user.username}:\n"
+             f"{summarize_request(bcp_fields)}\n"
+             f"Reference code: BCP{bcp_request.id}",
+        reply_markup=InlineKeyboardMarkup((
+          (InlineKeyboardButton("Acknowledge", callback_data="bcp_acknowledge"),)
+          (
+            InlineKeyboardButton("Accept", callback_data="bcp_accept"),
+            InlineKeyboardButton("Deny", callback_data="bcp_deny"),
+          ),
+        )),
+      )
   
   return ConversationHandler.END
 
@@ -115,11 +135,11 @@ def add_bcp_handlers(application: Application):
   bcp_handler = ConversationHandler(
     entry_points=[CommandHandler("bcp", bcp)],
     states={
-      bcp_states.RANK_NAME: [MessageHandler(filters.TEXT & (~filters.COMMAND), bcp_rank_name)],
-      bcp_states.DATE_TIME: [MessageHandler(filters.TEXT & (~filters.COMMAND), bcp_date_time)],
-      bcp_states.PURPOSE: [MessageHandler(filters.TEXT & (~filters.COMMAND), bcp_purpose)],
-      bcp_states.INFO: [MessageHandler(filters.TEXT & (~filters.COMMAND), bcp_info)],
-      bcp_states.CONFIRM: [CommandHandler("confirm", bcp_confirm)],
+      BCPConversationState.RANK_NAME: [MessageHandler(filters.TEXT & (~filters.COMMAND), bcp_rank_name)],
+      BCPConversationState.DATE_TIME: [MessageHandler(filters.TEXT & (~filters.COMMAND), bcp_date_time)],
+      BCPConversationState.PURPOSE: [MessageHandler(filters.TEXT & (~filters.COMMAND), bcp_purpose)],
+      BCPConversationState.INFO: [MessageHandler(filters.TEXT & (~filters.COMMAND), bcp_info)],
+      BCPConversationState.CONFIRM: [CommandHandler("confirm", bcp_confirm)],
     },
     fallbacks=[CommandHandler("cancel", bcp_cancel)],
   )

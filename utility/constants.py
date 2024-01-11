@@ -9,5 +9,31 @@ HELP_MESSAGE = cleandoc("""
   /help - Display this list of commands
 """)
 
-bcp_states = Enum("bcp", ["RANK_NAME", "DATE_TIME", "PURPOSE", "INFO", "CONFIRM"])
-rso_states = Enum("rso", ["RANK_NAME", "LOCATION", "DATE_TIME", "REASON", "INFO", "CONFIRM"])
+BCPConversationState = Enum("BCPConversationState", [
+  "RANK_NAME",
+  "DATE_TIME",
+  "PURPOSE",
+  "INFO",
+  "CONFIRM",
+])
+
+BCPCallbackType = Enum("BCPCallbackType", [
+  "ACKNOWLEDGE",
+  "ACCEPT",
+  "DENY",
+])
+
+RSOConversationState = Enum("RSOConversationState", [
+  "RANK_NAME",
+  "LOCATION",
+  "DATE_TIME",
+  "REASON",
+  "INFO",
+  "CONFIRM",
+])
+
+RSOCallbackType = Enum("RSOCallbackType", [
+  "ACKNOWLEDGE",
+  "ACCEPT",
+  "DENY",
+])
