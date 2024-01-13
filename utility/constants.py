@@ -37,3 +37,9 @@ RSOCallbackType = Enum("RSOCallbackType", [
   "ACCEPT",
   "DENY",
 ])
+
+RequestStatus = Enum("RequestStatus", [
+  "ACCEPTED",
+  "REJECTED",
+  "PENDING",
+])

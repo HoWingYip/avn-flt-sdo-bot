@@ -8,7 +8,7 @@ from utility.callback_data import make_callback_data
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy import select
 from db.init_db import engine
-from db.classes import BCPRequest, ChatGroup
+from db.classes import BCPRequest, ChatGroup, BCPRequestNotification
 
 # TODO: remove all echo text after deployment
 
@@ -105,7 +105,6 @@ async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
       "If you wish to carry out more actions, send /help for a list of commands."
     )
 
-    # TODO: put this somewhere else. Ew!
     inline_keyboard = InlineKeyboardMarkup((
       (
         InlineKeyboardButton(
@@ -113,27 +112,26 @@ async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
           callback_data=make_callback_data(BCPCallbackType.ACKNOWLEDGE, bcp_request.id)
         ),
       ),
-      (
-        InlineKeyboardButton(
-          text="Accept",
-          callback_data=make_callback_data(BCPCallbackType.ACCEPT, bcp_request.id)
-        ),
-        InlineKeyboardButton(
-          text="Deny",
-          callback_data=make_callback_data(BCPCallbackType.DENY, bcp_request.id)
-        ),
-      ),
     ))
 
     select_group_stmt = select(ChatGroup.id)
     for group_id in db_session.scalars(select_group_stmt):
-      await context.bot.send_message(
+      sent_message = await context.bot.send_message(
         group_id,
         text=f"New BCP clearance request from @{update.effective_user.username}:\n"
              f"{summarize_request(bcp_fields)}\n"
              f"Reference code: BCP{bcp_request.id}",
         reply_markup=inline_keyboard,
       )
+
+      db_message = BCPRequestNotification(
+        chat_id=group_id,
+        message_id=sent_message.id,
+        request=bcp_request,
+      )
+      db_session.add(db_message)
+
+    db_session.commit()
   
   return ConversationHandler.END
 
