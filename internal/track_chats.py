@@ -6,9 +6,9 @@ from sqlalchemy.orm import Session as DBSession
 from db.init_db import engine
 from db.classes import ChatGroup
 
-# TODO: in production, DISABLE ADDING BOT TO GROUPS
-# after adding it to official groups!
+# TODO: in production, DISABLE ADDING BOT TO GROUPS after adding it to official groups!
 # If this step is forgotten, a privacy risk will result!
+# Also consider requiring the bot to be activated by password after being added to a group
 
 logger = logging.getLogger(__name__)
 
@@ -50,5 +50,5 @@ async def on_membership_update(update: Update, context: ContextTypes.DEFAULT_TYP
       left_group = db_session.get(ChatGroup, chat.id)
       db_session.delete(left_group)
 
-def add_chat_member_handler(application: Application):
-  application.add_handler(ChatMemberHandler(on_membership_update, ChatMemberHandler.MY_CHAT_MEMBER))
+def track_chats(app: Application):
+  app.add_handler(ChatMemberHandler(on_membership_update, ChatMemberHandler.MY_CHAT_MEMBER))

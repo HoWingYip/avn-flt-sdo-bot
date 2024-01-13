@@ -1,4 +1,4 @@
-from sqlalchemy import Text, Float
+from sqlalchemy import Text, Float, Integer
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 class Base(DeclarativeBase):
@@ -9,6 +9,8 @@ class BCPRequest(Base):
 
   id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
   
+  sender_id: Mapped[int] = mapped_column(Integer())
+
   # for multiple users, just serialize array of names to JSON and store as string
   rank_name: Mapped[str] = mapped_column(Text())
   
@@ -23,6 +25,7 @@ class RSORequest(Base):
   __tablename__ = "RSORequest"
 
   id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+  sender_id: Mapped[int] = mapped_column(Integer())
   rank_name: Mapped[str] = mapped_column(Text())
   location: Mapped[str] = mapped_column(Text())
   time: Mapped[int] = mapped_column(Float())

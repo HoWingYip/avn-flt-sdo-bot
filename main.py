@@ -3,9 +3,8 @@ import json
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
-from user.bcp import add_bcp_handlers
-from user.rso import add_rso_handlers
-from sdo.track_chats import add_chat_member_handler
+import features
+from internal.track_chats import track_chats
 
 from utility.constants import HELP_MESSAGE
 
@@ -26,15 +25,16 @@ if __name__ == "__main__":
   with open("bot_config.json") as bot_config_file:
     bot_config = json.load(bot_config_file)
 
-  application = ApplicationBuilder().token(bot_config["bot_token"]).build()
-  
-  # user-facing handlers
-  application.add_handler(CommandHandler("start", start))
-  application.add_handler(CommandHandler("help", help))
-  add_bcp_handlers(application)
-  add_rso_handlers(application)
+  app = ApplicationBuilder().token(bot_config["bot_token"]).build()
 
-  # SDO-facing handlers
-  add_chat_member_handler(application)
+  app.add_handler(CommandHandler("start", start))
+  app.add_handler(CommandHandler("help", help))
   
-  application.run_polling()
+  # user-facing feataures
+  features.bcp.init(app)
+  features.rso.init(app)
+
+  # internal stuff
+  track_chats(app)
+  
+  app.run_polling()

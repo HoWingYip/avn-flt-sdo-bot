@@ -122,7 +122,7 @@ async def rso_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
   )
   return ConversationHandler.END
 
-def add_rso_handlers(application: Application):
+def add_handlers(app: Application):
   # FIXME: handler should only listen to messages in private chats
   rso_handler = ConversationHandler(
     entry_points=[CommandHandler("rso", rso)],
@@ -136,4 +136,4 @@ def add_rso_handlers(application: Application):
     },
     fallbacks=[CommandHandler("cancel", rso_cancel)],
   )
-  application.add_handler(rso_handler)
+  app.add_handler(rso_handler)

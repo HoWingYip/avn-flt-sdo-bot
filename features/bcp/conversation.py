@@ -1,8 +1,9 @@
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
 
-from utility.constants import BCPConversationState
+from utility.constants import BCPConversationState, BCPCallbackType
 from utility.validate_datetime_string import validate_datetime_string
+from utility.callback_data import make_callback_data
 
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy import select
@@ -87,7 +88,9 @@ async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
   # disable expire_on_commit so we don't need to start another transaction
   # to load request ID after commit
   with DBSession(engine, expire_on_commit=False) as db_session:
+    user_id = update.effective_user.id
     bcp_request = BCPRequest(
+      sender_id=user_id,
       rank_name=bcp_fields["rank_name"],
       time=bcp_fields["time"].timestamp(),
       purpose=bcp_fields["purpose"],
@@ -102,21 +105,34 @@ async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
       "If you wish to carry out more actions, send /help for a list of commands."
     )
 
+    # TODO: put this somewhere else. Ew!
+    inline_keyboard = InlineKeyboardMarkup((
+      (
+        InlineKeyboardButton(
+          text="Acknowledge",
+          callback_data=make_callback_data(BCPCallbackType.ACKNOWLEDGE, bcp_request.id)
+        ),
+      ),
+      (
+        InlineKeyboardButton(
+          text="Accept",
+          callback_data=make_callback_data(BCPCallbackType.ACCEPT, bcp_request.id)
+        ),
+        InlineKeyboardButton(
+          text="Deny",
+          callback_data=make_callback_data(BCPCallbackType.DENY, bcp_request.id)
+        ),
+      ),
+    ))
+
     select_group_stmt = select(ChatGroup.id)
     for group_id in db_session.scalars(select_group_stmt):
-      # TODO: add "Acknowledge" and "Action taken" buttons
       await context.bot.send_message(
         group_id,
         text=f"New BCP clearance request from @{update.effective_user.username}:\n"
              f"{summarize_request(bcp_fields)}\n"
              f"Reference code: BCP{bcp_request.id}",
-        reply_markup=InlineKeyboardMarkup((
-          (InlineKeyboardButton("Acknowledge", callback_data="bcp_acknowledge"),)
-          (
-            InlineKeyboardButton("Accept", callback_data="bcp_accept"),
-            InlineKeyboardButton("Deny", callback_data="bcp_deny"),
-          ),
-        )),
+        reply_markup=inline_keyboard,
       )
   
   return ConversationHandler.END
@@ -130,7 +146,7 @@ async def bcp_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
   )
   return ConversationHandler.END
 
-def add_bcp_handlers(application: Application):
+def add_handlers(app: Application):
   # FIXME: handler should only listen to messages in private chats
   bcp_handler = ConversationHandler(
     entry_points=[CommandHandler("bcp", bcp)],
@@ -143,4 +159,4 @@ def add_bcp_handlers(application: Application):
     },
     fallbacks=[CommandHandler("cancel", bcp_cancel)],
   )
-  application.add_handler(bcp_handler)
+  app.add_handler(bcp_handler)
