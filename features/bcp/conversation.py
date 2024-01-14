@@ -4,6 +4,7 @@ from telegram.ext import Application, ContextTypes, ConversationHandler, Command
 from utility.constants import BCPConversationState, BCPCallbackType
 from utility.validate_datetime_string import validate_datetime_string
 from utility.callback_data import make_callback_data
+from utility.summarize_request import summarize_request
 
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy import select
@@ -11,14 +12,6 @@ from db.init_db import engine
 from db.classes import BCPRequest, ChatGroup, BCPRequestNotification
 
 # TODO: remove all echo text after deployment
-
-def summarize_request(bcp_fields):
-  return (
-    f"Rank/name: {bcp_fields['rank_name']}\n"
-    f"Clearance date and time: {bcp_fields['time'].strftime('%d%m%y %H%MH')}\n"
-    f"Purpose: {bcp_fields['purpose']}\n"
-    f"Additional info: {bcp_fields['info']}"
-  )
 
 async def bcp(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["bcp"] = {}
@@ -105,15 +98,6 @@ async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
       "If you wish to carry out more actions, send /help for a list of commands."
     )
 
-    inline_keyboard = InlineKeyboardMarkup((
-      (
-        InlineKeyboardButton(
-          text="Acknowledge",
-          callback_data=make_callback_data(BCPCallbackType.ACKNOWLEDGE, bcp_request.id)
-        ),
-      ),
-    ))
-
     select_group_stmt = select(ChatGroup.id)
     for group_id in db_session.scalars(select_group_stmt):
       sent_message = await context.bot.send_message(
@@ -121,7 +105,14 @@ async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text=f"New BCP clearance request from @{update.effective_user.username}:\n"
              f"{summarize_request(bcp_fields)}\n"
              f"Reference code: BCP{bcp_request.id}",
-        reply_markup=inline_keyboard,
+        reply_markup=InlineKeyboardMarkup((
+          (
+            InlineKeyboardButton(
+              text="Acknowledge",
+              callback_data=make_callback_data(BCPCallbackType.ACKNOWLEDGE, bcp_request.id)
+            ),
+          ),
+        )),
       )
 
       db_message = BCPRequestNotification(

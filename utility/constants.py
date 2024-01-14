@@ -21,6 +21,8 @@ BCPCallbackType = Enum("BCPCallbackType", [
   "ACKNOWLEDGE",
   "ACCEPT",
   "DENY",
+  "UNDO_ACCEPT",
+  "UNDO_DENY",
 ])
 
 RSOConversationState = Enum("RSOConversationState", [
@@ -36,6 +38,8 @@ RSOCallbackType = Enum("RSOCallbackType", [
   "ACKNOWLEDGE",
   "ACCEPT",
   "DENY",
+  "UNDO_ACCEPT",
+  "UNDO_DENY",
 ])
 
 RequestStatus = Enum("RequestStatus", [
