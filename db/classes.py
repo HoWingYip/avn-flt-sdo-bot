@@ -1,5 +1,6 @@
 from sqlalchemy import ForeignKey, Text, Float, Integer, Boolean, Enum as SQLEnum
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from typing import List
 
 from utility.constants import RequestStatus
 
@@ -26,7 +27,7 @@ class BCPRequest(Base):
     default=RequestStatus.PENDING,
   )
 
-  messages: Mapped["BCPRequestNotification"] = relationship(back_populates="request")
+  messages: Mapped[List["BCPRequestNotification"]] = relationship(back_populates="request")
 
   def __repr__(self):
     return f"BCPRequest(id={self.id!r}, rank_name={self.rank_name!r}, time={self.time!r}, purpose={self.purpose!r}, info={self.info!r})"
@@ -45,7 +46,7 @@ class RSORequest(Base):
   acknowledged: Mapped[bool] = mapped_column(Boolean())
   status: Mapped[RequestStatus] = mapped_column(SQLEnum(RequestStatus, create_constraint=False))
 
-  messages: Mapped["RSORequestNotification"] = relationship(back_populates="request")
+  messages: Mapped[List["RSORequestNotification"]] = relationship(back_populates="request")
 
   def __repr__(self):
     return f"RSORequest(id={self.id!r}, rank_name={self.rank_name!r}, location={self.location!r}, time={self.time!r}, reason={self.reason!r}, info={self.info!r})"

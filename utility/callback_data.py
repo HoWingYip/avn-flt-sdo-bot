@@ -7,11 +7,13 @@ def make_callback_data(callback_type: Enum, *data):
   Throws if length of resulting callback data is not within
   [InlineKeyboardButton.MIN_CALLBACK_DATA, InlineKeyboardButton.MAX_CALLBACK_DATA].
   """
-  data = "__".join((str(callback_type), *(str(x) for x in data)))
+  data = "_".join((str(callback_type), *(str(x) for x in data)))
   if not InlineKeyboardButton.MIN_CALLBACK_DATA <= len(data) <= InlineKeyboardButton.MAX_CALLBACK_DATA:
     raise ValueError
   return data
 
-def match_callback_type(callback_type: Enum):
-  return lambda callback_data: callback_data.split("__")[0] == str(callback_type)
+def parse_callback_data(callback_data: str):
+  return callback_data.split("_")[1:]
 
+def match_callback_type(callback_type: Enum):
+  return lambda callback_data: callback_data.split("_")[0] == str(callback_type)

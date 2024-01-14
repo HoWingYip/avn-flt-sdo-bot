@@ -2,16 +2,16 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CallbackContext, CallbackQueryHandler
 
 from utility.constants import BCPCallbackType
-from utility.callback_data import match_callback_type, make_callback_data
+from utility.callback_data import match_callback_type, make_callback_data, parse_callback_data
 
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy import select
 from db.init_db import engine
-from db.classes import BCPRequest, BCPRequestNotification
+from db.classes import BCPRequest
 
 async def bcp_acknowledge(update: Update, context: CallbackContext):
   query = update.callback_query
-  bcp_request_id = query.data.split("__")[1]
+  bcp_request_id = parse_callback_data(query.data)[0]
 
   with DBSession(engine) as db_session:
     select_bcp_request_stmt = select(BCPRequest).where(BCPRequest.id == bcp_request_id)
@@ -26,15 +26,10 @@ async def bcp_acknowledge(update: Update, context: CallbackContext):
     db_session.commit()
 
     # update inline keyboards of all notification messages associated with this BCP request
-    select_bcp_notifications_stmt = select(
-      BCPRequestNotification.chat_id,
-      BCPRequestNotification.message_id,
-    ).where(BCPRequestNotification.request_id == bcp_request_id)
-
-    for chat_id, message_id in db_session.execute(select_bcp_notifications_stmt):
+    for message in bcp_request.messages:
       await context.bot.edit_message_reply_markup(
-        chat_id=chat_id,
-        message_id=message_id,
+        chat_id=message.chat_id,
+        message_id=message.message_id,
         reply_markup=InlineKeyboardMarkup((
           (
             InlineKeyboardButton(
