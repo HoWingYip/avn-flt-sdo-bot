@@ -1,7 +1,4 @@
-def summarize_request(bcp_fields):
-  return (
-    f"Rank/name: {bcp_fields['rank_name']}\n"
-    f"Clearance date and time: {bcp_fields['time'].strftime('%d%m%y %H%MH')}\n"
-    f"Purpose: {bcp_fields['purpose']}\n"
-    f"Additional info: {bcp_fields['info']}"
+def summarize_request(fields, field_name_mapping):
+  return "\n".join(
+    f"{field_name_mapping[field_name]}: {fields[field_name]}" for field_name in fields
   )

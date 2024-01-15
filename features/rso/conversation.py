@@ -1,12 +1,15 @@
-from telegram import Update
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import filters, Application, ConversationHandler, CommandHandler, MessageHandler, ContextTypes
 
-from utility.constants import RSOConversationState
+from utility.constants import RSOConversationState, RSO_FIELD_NAME_MAPPING, RequestCallbackType
 from utility.validate_datetime_string import validate_datetime_string
+from utility.callback_data import make_callback_data
+from utility.summarize_request import summarize_request
 
 from sqlalchemy.orm import Session as DBSession
+from sqlalchemy import select
 from db.init_db import engine
-from db.classes import RSORequest
+from db.classes import Request, RequestNotification, ChatGroup
 
 async def rso(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["rso"] = {}
@@ -40,9 +43,6 @@ async def rso_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def rso_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):  
   try:
-    # context.user_data["rso"]["date"], context.user_data["rso"]["time"] = \
-    #   validate_datetime_string(update.message.text)
-
     datetime_obj = validate_datetime_string(update.message.text)
     context.user_data["rso"]["time"] = datetime_obj
   except Exception as err:
@@ -72,46 +72,72 @@ async def rso_reason(update: Update, context: ContextTypes.DEFAULT_TYPE):
   return RSOConversationState.INFO
 
 async def rso_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  context.user_data["rso"]["info"] = update.message.text
+  context.user_data["rso"]["additional_info"] = update.message.text
 
   # TODO: require user to confirm input before final submission
   # by sending /confirm after this summary is displayed
   rso_fields = context.user_data["rso"]
   await update.message.reply_text(
     "RSO request summary:\n"
-    f"Rank/name: {rso_fields['rank_name']}\n"
-    f"RSO location: {rso_fields['location']}\n"
-    f"RSO date and time: {rso_fields['time'].strftime('%d%m%y %H%MH')}\n"
-    f"RSO reason: {rso_fields['reason']}\n"
-    f"Additional info: {rso_fields['info']}\n\n"
+    f"{summarize_request(rso_fields, RSO_FIELD_NAME_MAPPING)}\n"
     "To confirm the above information and submit the request, send /confirm. To cancel, send /cancel."
   )
 
   return RSOConversationState.CONFIRM
 
+# TODO: refactor out to general request completion function
 async def rso_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
   rso_fields = context.user_data["rso"]
   
   # disable expire_on_commit so we don't need to start another transaction
   # to load request ID after commit
   with DBSession(engine, expire_on_commit=False) as db_session:
-    rso_request = RSORequest(
-      rank_name=rso_fields["rank_name"],
-      location=rso_fields["location"],
-      time=rso_fields["time"].timestamp(),
-      reason=rso_fields["reason"],
-      info=rso_fields["info"],
+    user_id = update.effective_user.id
+    request = Request(
+      sender_id=user_id,
+      info={
+        "type": "RSO",
+        "rank_name": rso_fields["rank_name"],
+        "location": rso_fields["location"],
+        "time": rso_fields["time"].timestamp(),
+        "reason": rso_fields["reason"],
+        "additional_info": rso_fields["additional_info"],
+      }
     )
 
-    db_session.add(rso_request)
+    db_session.add(request)
     db_session.commit()
 
     await update.message.reply_text(
-      f"RSO request submitted, reference code is RSO{rso_request.id}.\n"
+      f"RSO request submitted, reference no. is {request.id}.\n"
       "If you wish to carry out more actions, send /help for a list of commands."
     )
-    
-    # TODO: send RSO info to all group chats
+
+    select_group_stmt = select(ChatGroup.id)
+    for group_id in db_session.scalars(select_group_stmt):
+      sent_message = await context.bot.send_message(
+        group_id,
+        text=f"New RSO request from @{update.effective_user.username}:\n"
+             f"{summarize_request(rso_fields, RSO_FIELD_NAME_MAPPING)}\n"
+             f"Reference no.: {request.id}",
+        reply_markup=InlineKeyboardMarkup((
+          (
+            InlineKeyboardButton(
+              text="Acknowledge",
+              callback_data=make_callback_data(RequestCallbackType.ACKNOWLEDGE, request.id)
+            ),
+          ),
+        )),
+      )
+
+      db_message = RequestNotification(
+        chat_id=group_id,
+        message_id=sent_message.id,
+        request=request,
+      )
+      db_session.add(db_message)
+
+    db_session.commit()
   
   return ConversationHandler.END
 

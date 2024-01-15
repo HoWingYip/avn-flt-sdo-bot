@@ -1,7 +1,7 @@
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
 
-from utility.constants import BCPConversationState, BCPCallbackType
+from utility.constants import BCPConversationState, BCP_FIELD_NAME_MAPPING, RequestCallbackType
 from utility.validate_datetime_string import validate_datetime_string
 from utility.callback_data import make_callback_data
 from utility.summarize_request import summarize_request
@@ -9,7 +9,7 @@ from utility.summarize_request import summarize_request
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy import select
 from db.init_db import engine
-from db.classes import BCPRequest, ChatGroup, BCPRequestNotification
+from db.classes import Request, ChatGroup, RequestNotification
 
 # TODO: remove all echo text after deployment
 
@@ -64,17 +64,18 @@ async def bcp_purpose(update: Update, context: ContextTypes.DEFAULT_TYPE):
   return BCPConversationState.INFO
 
 async def bcp_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  context.user_data["bcp"]["info"] = update.message.text
+  context.user_data["bcp"]["additional_info"] = update.message.text
 
   bcp_fields = context.user_data["bcp"]
   await update.message.reply_text(
     "BCP clearance request summary:\n"
-    f"{summarize_request(bcp_fields)}\n\n"
+    f"{summarize_request(bcp_fields, BCP_FIELD_NAME_MAPPING)}\n\n"
     "To confirm the above information and submit the request, send /confirm. To cancel, send /cancel."
   )
   
   return BCPConversationState.CONFIRM
 
+# TODO: refactor out to general request completion function
 async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
   bcp_fields = context.user_data["bcp"]
 
@@ -82,19 +83,22 @@ async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
   # to load request ID after commit
   with DBSession(engine, expire_on_commit=False) as db_session:
     user_id = update.effective_user.id
-    bcp_request = BCPRequest(
+    request = Request(
       sender_id=user_id,
-      rank_name=bcp_fields["rank_name"],
-      time=bcp_fields["time"].timestamp(),
-      purpose=bcp_fields["purpose"],
-      info=bcp_fields["info"],
+      info={
+        "type": "BCP",
+        "rank_name": bcp_fields["rank_name"],
+        "time": bcp_fields["time"].timestamp(),
+        "purpose": bcp_fields["purpose"],
+        "additional_info": bcp_fields["additional_info"],
+      }
     )
 
-    db_session.add(bcp_request)
+    db_session.add(request)
     db_session.commit()
 
     await update.message.reply_text(
-      f"BCP clearance request submitted, reference code is BCP{bcp_request.id}.\n"
+      f"BCP clearance request submitted; reference no. is {request.id}.\n"
       "If you wish to carry out more actions, send /help for a list of commands."
     )
 
@@ -103,22 +107,22 @@ async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
       sent_message = await context.bot.send_message(
         group_id,
         text=f"New BCP clearance request from @{update.effective_user.username}:\n"
-             f"{summarize_request(bcp_fields)}\n"
-             f"Reference code: BCP{bcp_request.id}",
+             f"{summarize_request(bcp_fields, BCP_FIELD_NAME_MAPPING)}\n"
+             f"Reference no.: {request.id}",
         reply_markup=InlineKeyboardMarkup((
           (
             InlineKeyboardButton(
               text="Acknowledge",
-              callback_data=make_callback_data(BCPCallbackType.ACKNOWLEDGE, bcp_request.id)
+              callback_data=make_callback_data(RequestCallbackType.ACKNOWLEDGE, request.id)
             ),
           ),
         )),
       )
 
-      db_message = BCPRequestNotification(
+      db_message = RequestNotification(
         chat_id=group_id,
         message_id=sent_message.id,
-        request=bcp_request,
+        request=request,
       )
       db_session.add(db_message)
 
