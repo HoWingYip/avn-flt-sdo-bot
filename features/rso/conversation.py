@@ -81,7 +81,7 @@ async def rso_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
   rso_fields = context.user_data["rso"]
   await update.message.reply_text(
     "RSO request summary:\n"
-    f"{summarize_request(rso_fields, FIELD_NAME_MAPPINGS['RSO'])}\n"
+    f"{summarize_request(request_type='RSO', fields=rso_fields)}\n"
     "To confirm the above information and submit the request, send /confirm. To cancel, send /cancel."
   )
 

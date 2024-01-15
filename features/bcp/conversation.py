@@ -71,7 +71,7 @@ async def bcp_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
   bcp_fields = context.user_data["bcp"]
   await update.message.reply_text(
     "BCP clearance request summary:\n"
-    f"{summarize_request(bcp_fields, FIELD_NAME_MAPPINGS['BCP'])}\n\n"
+    f"{summarize_request(request_type='BCP', fields=bcp_fields)}\n\n"
     "To confirm the above information and submit the request, send /confirm. To cancel, send /cancel."
   )
   

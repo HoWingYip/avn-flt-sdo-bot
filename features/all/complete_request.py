@@ -42,7 +42,7 @@ async def complete_request(
       sent_message = await context.bot.send_message(
         group_id,
         text=f"New {request_type} request from @{update.effective_user.username}:\n"
-             f"{summarize_request(fields, FIELD_NAME_MAPPINGS[request_type])}\n"
+             f"{summarize_request(request_type, fields)}\n"
              f"Reference no.: {request.id}",
         reply_markup=InlineKeyboardMarkup((
           (
