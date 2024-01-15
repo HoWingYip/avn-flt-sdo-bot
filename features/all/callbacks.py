@@ -6,7 +6,7 @@ from utility.callback_data import match_callback_type, make_callback_data, parse
 
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy import select
-from db.init_db import engine
+from db import engine
 from db.classes import Request
 
 async def acknowledge(update: Update, context: CallbackContext):

@@ -17,11 +17,20 @@ BCPConversationState = Enum("BCPConversationState", [
   "CONFIRM",
 ])
 
-BCP_FIELD_NAME_MAPPING = {
-  "rank_name": "Rank/name",
-  "time": "Time",
-  "purpose": "Purpose",
-  "additional_info": "Additional info",
+FIELD_NAME_MAPPINGS = {
+  "BCP": {
+    "rank_name": "Rank/name",
+    "time": "Time",
+    "purpose": "Purpose",
+    "additional_info": "Additional info",
+  },
+  "RSO": {
+    "rank_name": "Rank/name",
+    "location": "RSO location",
+    "time": "RSO date and time",
+    "reason": "RSO reason",
+    "additional_info": "Additional info",
+  },
 }
 
 RSOConversationState = Enum("RSOConversationState", [
@@ -32,14 +41,6 @@ RSOConversationState = Enum("RSOConversationState", [
   "INFO",
   "CONFIRM",
 ])
-
-RSO_FIELD_NAME_MAPPING = {
-  "rank_name": "Rank/name",
-  "location": "RSO location",
-  "time": "RSO date and time",
-  "reason": "RSO reason",
-  "additional_info": "Additional info",
-}
 
 RequestCallbackType = Enum("RSOCallbackType", [
   "ACKNOWLEDGE",

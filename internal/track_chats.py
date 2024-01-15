@@ -3,7 +3,7 @@ from telegram import Update, ChatMember, Chat
 from telegram.ext import Application, ContextTypes, ChatMemberHandler
 
 from sqlalchemy.orm import Session as DBSession
-from db.init_db import engine
+from db import engine
 from db.classes import ChatGroup
 
 # TODO: in production, DISABLE ADDING BOT TO GROUPS after adding it to official groups!
