@@ -46,7 +46,7 @@ async def rso_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def rso_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):  
   try:
     datetime_obj = validate_datetime_string(update.message.text)
-    context.user_data["rso"]["time"] = datetime_obj.timestamp()
+    context.user_data["rso"]["time"] = datetime_obj
   except Exception as err:
     print("Error when validating datetime:", err)
     await update.message.reply_text(

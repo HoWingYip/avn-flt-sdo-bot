@@ -38,7 +38,7 @@ async def bcp_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def bcp_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
   try:
     datetime_obj = validate_datetime_string(update.message.text)
-    context.user_data["bcp"]["time"] = datetime_obj.timestamp()
+    context.user_data["bcp"]["time"] = datetime_obj
   except Exception as err:
     print("Error when validating datetime:", err)
     await update.message.reply_text(
@@ -99,7 +99,9 @@ async def bcp_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
   return ConversationHandler.END
 
 def add_handlers(app: Application):
-  # FIXME: handler should only listen to messages in private chats
+  # 1. FIXME: handler should only listen to messages in private chats
+  # 2. FIXME: disallow nested conversations
+  #    (e.g. user shouldn't be able to start a BCP request in the middle of an RSO request)
   bcp_handler = ConversationHandler(
     entry_points=[CommandHandler("bcp", bcp)],
     states={

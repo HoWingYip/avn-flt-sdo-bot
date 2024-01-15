@@ -20,16 +20,20 @@ async def complete_request(
   # disable expire_on_commit so we don't need to start another transaction
   # to load request ID after commit
   with DBSession(engine, expire_on_commit=False) as db_session:
+    request_info = {"type": request_type, **fields}
+    if "time" in request_info:
+      request_info["time"] = request_info["time"].timestamp()
+
     request = Request(
       sender_id=user_id,
-      info={"type": request_type, **fields}
+      info=request_info,
     )
 
     db_session.add(request)
     db_session.commit()
 
     await update.message.reply_text(
-      f"{request_type} clearance request submitted; reference no. is {request.id}.\n"
+      f"{request_type} request submitted; reference no. is {request.id}.\n"
       "If you wish to carry out more actions, send /help for a list of commands."
     )
 
