@@ -12,11 +12,12 @@ from db.classes import Request, RequestNotification, ChatGroup
 
 async def complete_request(
     request_type: str,
-    user_id: int,
-    fields: dict,
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
+  user_id = update.effective_user.id
+  fields = context.user_data[request_type]
+
   # disable expire_on_commit so we don't need to start another transaction
   # to load request ID after commit
   with DBSession(engine, expire_on_commit=False) as db_session:
