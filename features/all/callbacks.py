@@ -69,7 +69,7 @@ async def accept(update: Update, context: CallbackContext):
         reply_markup=InlineKeyboardMarkup((
           (
             InlineKeyboardButton(
-              text="Undo acceptance",
+              text=f"Accepted by @{update.effective_user.username}. Click to undo.",
               callback_data=make_callback_data(RequestCallbackType.UNDO_ACCEPT, request.id)
             ),
           ),
@@ -101,7 +101,7 @@ async def reject(update: Update, context: CallbackContext):
         reply_markup=InlineKeyboardMarkup((
           (
             InlineKeyboardButton(
-              text="Undo rejection",
+              text=f"Rejected by @{update.effective_user.username}. Click to undo.",
               callback_data=make_callback_data(RequestCallbackType.UNDO_REJECT, request.id)
             ),
           ),

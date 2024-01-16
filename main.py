@@ -29,10 +29,9 @@ if __name__ == "__main__":
   app.add_handler(CommandHandler("start", start))
   app.add_handler(CommandHandler("help", help))
 
-  # user-facing feataures
   features.all.init(app)
-
   features.bcp.init(app)
+  features.ippt.init(app)
   features.rso.init(app)
 
   # internal stuff

@@ -9,16 +9,8 @@ HELP_MESSAGE = cleandoc("""
   /help - Display this list of commands
 """)
 
-BCPConversationState = Enum("BCPConversationState", [
-  "RANK_NAME",
-  "DATE_TIME",
-  "PURPOSE",
-  "INFO",
-  "CONFIRM",
-])
-
 FIELD_NAME_MAPPINGS = {
-  "BCP": {
+  "BCP clearance": {
     "rank_name": "Rank/name",
     "time": "Time",
     "purpose": "Purpose",
@@ -31,13 +23,35 @@ FIELD_NAME_MAPPINGS = {
     "reason": "RSO reason",
     "additional_info": "Additional info",
   },
+  "IPPT booking": {
+    "rank_name": "Rank/name",
+    "time": "Time",
+    "participants": "Participants",
+    "additional_info": "Additional info",
+  }
 }
+
+BCPConversationState = Enum("BCPConversationState", [
+  "RANK_NAME",
+  "DATE_TIME",
+  "PURPOSE",
+  "INFO",
+  "CONFIRM",
+])
 
 RSOConversationState = Enum("RSOConversationState", [
   "RANK_NAME",
   "LOCATION",
   "DATE_TIME",
   "REASON",
+  "INFO",
+  "CONFIRM",
+])
+
+IPPTConversationState = Enum("IPPTConversationState", [
+  "RANK_NAME",
+  "DATE_TIME",
+  "PARTICIPANTS",
   "INFO",
   "CONFIRM",
 ])
