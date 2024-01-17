@@ -3,14 +3,18 @@ from telegram.ext import Application, ContextTypes, ConversationHandler, Command
 
 from features.all import complete_request
 
-from utility.constants import BCPConversationState
+from utility.constants import BCPConversationState, PRIVATE_MESSAGE_FILTER
 from utility.validate_datetime_string import validate_datetime_string
 from utility.summarize_request import summarize_request
 
 REQUEST_TYPE = "BCP clearance"
 
 async def bcp_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+  if context.user_data.get("in_conversation"):
+    return ConversationHandler.END
+
   context.user_data[REQUEST_TYPE] = {}
+  context.user_data["in_conversation"] = True
 
   await update.message.reply_text(
     "You are now starting a Base Command Post (BCP) clearance request. To cancel, send /cancel at any time.\n"
@@ -72,6 +76,8 @@ async def bcp_additional_info(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
   await complete_request(request_type=REQUEST_TYPE, update=update, context=context)
+  
+  context.user_data["in_conversation"] = False
   return ConversationHandler.END
 
 async def bcp_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -81,21 +87,47 @@ async def bcp_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     f"{REQUEST_TYPE} request cancelled.\n"
     "Send /help for a list of commands."
   )
+  
+  context.user_data["in_conversation"] = False
   return ConversationHandler.END
 
 def add_handlers(app: Application):
-  # 1. FIXME: handler should only listen to messages in private chats.
-  #    Currently it still listens in groups.
-  # 2. FIXME: disallow nested conversations
-  #    (e.g. user shouldn't be able to start a BCP request in the middle of an RSO request)
   app.add_handler(ConversationHandler(
-    entry_points=[CommandHandler("bcp", bcp_start)],
+    entry_points=[
+      CommandHandler(
+        command="bcp",
+        callback=bcp_start,
+        filters=filters.ChatType.PRIVATE,
+      ),
+    ],
+
     states={
-      BCPConversationState.RANK_NAME: [MessageHandler(filters.TEXT & (~filters.COMMAND), bcp_rank_name)],
-      BCPConversationState.DATE_TIME: [MessageHandler(filters.TEXT & (~filters.COMMAND), bcp_date_time)],
-      BCPConversationState.PURPOSE: [MessageHandler(filters.TEXT & (~filters.COMMAND), bcp_purpose)],
-      BCPConversationState.INFO: [MessageHandler(filters.TEXT & (~filters.COMMAND), bcp_additional_info)],
-      BCPConversationState.CONFIRM: [CommandHandler("confirm", bcp_confirm)],
+      BCPConversationState.RANK_NAME: [
+        MessageHandler(callback=bcp_rank_name, filters=PRIVATE_MESSAGE_FILTER),
+      ],
+      BCPConversationState.DATE_TIME: [
+        MessageHandler(callback=bcp_date_time, filters=PRIVATE_MESSAGE_FILTER),
+      ],
+      BCPConversationState.PURPOSE: [
+        MessageHandler(callback=bcp_purpose, filters=PRIVATE_MESSAGE_FILTER),
+      ],
+      BCPConversationState.INFO: [
+        MessageHandler(callback=bcp_additional_info, filters=PRIVATE_MESSAGE_FILTER),
+      ],
+      BCPConversationState.CONFIRM: [
+        CommandHandler(
+          command="confirm",
+          callback=bcp_confirm,
+          filters=filters.ChatType.PRIVATE,
+        ),
+      ],
     },
-    fallbacks=[CommandHandler("cancel", bcp_cancel)],
+
+    fallbacks=[
+      CommandHandler(
+        command="cancel",
+        callback=bcp_cancel,
+        filters=filters.ChatType.PRIVATE,
+      ),
+    ],
   ))

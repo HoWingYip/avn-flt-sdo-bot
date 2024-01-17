@@ -1,5 +1,6 @@
 from inspect import cleandoc
 from enum import Enum
+from telegram.ext import filters
 
 HELP_MESSAGE = cleandoc("""
   List of commands:
@@ -9,7 +10,10 @@ HELP_MESSAGE = cleandoc("""
   /help - Display this list of commands
 """)
 
+PRIVATE_MESSAGE_FILTER = filters.TEXT & (~filters.COMMAND) & filters.ChatType.PRIVATE
+
 FIELD_NAME_MAPPINGS = {
+  # Illegal names are: "in_conversation"
   "BCP clearance": {
     "rank_name": "Rank/name",
     "time": "Time",
