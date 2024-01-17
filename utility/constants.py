@@ -56,6 +56,10 @@ IPPTConversationState = Enum("IPPTConversationState", [
   "CONFIRM",
 ])
 
+# RequestCallbackType types must not contain "#"
+# because callback data parsers split by that string
+# don't think an enum member containing that char would even be legal
+# but just in case
 RequestCallbackType = Enum("RSOCallbackType", [
   "ACKNOWLEDGE",
   "ACCEPT",

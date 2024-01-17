@@ -1,7 +1,7 @@
 from sqlalchemy import ForeignKey, Boolean, Integer, Enum as SQLEnum
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy_json import MutableJson
-from typing import List
+from typing import List, Optional
 
 from utility.constants import RequestStatus
 
@@ -21,7 +21,13 @@ class Request(Base):
     SQLEnum(RequestStatus, create_constraint=False),
     default=RequestStatus.PENDING,
   )
-  messages: Mapped[List["RequestNotification"]] = relationship(back_populates="request")
+  
+  notifications: Mapped[List["RequestNotification"]] = relationship(
+    back_populates="request",
+  )
+  verdict_notification: Mapped[Optional["RequestVerdictNotification"]] = relationship(
+    back_populates="request",
+  )
 
 
 class RequestNotification(Base):
@@ -30,7 +36,16 @@ class RequestNotification(Base):
   chat_id: Mapped[int] = mapped_column(primary_key=True)
   message_id: Mapped[int] = mapped_column(primary_key=True)
   request_id: Mapped[int] = mapped_column(ForeignKey("Request.id"))
-  request: Mapped["Request"] = relationship(back_populates="messages")
+  request: Mapped["Request"] = relationship(back_populates="notifications")
+
+
+class RequestVerdictNotification(Base):
+  __tablename__ = "RequestVerdictNotification"
+
+  chat_id: Mapped[int] = mapped_column(primary_key=True)
+  message_id: Mapped[int] = mapped_column(primary_key=True)
+  request_id: Mapped[int] = mapped_column(ForeignKey("Request.id"))
+  request: Mapped["Request"] = relationship(back_populates="verdict_notification")
 
 
 class ChatGroup(Base):
