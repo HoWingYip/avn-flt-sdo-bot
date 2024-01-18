@@ -1,9 +1,12 @@
-from sqlalchemy import ForeignKey, Boolean, Integer, Enum as SQLEnum
+from sqlalchemy import ForeignKey, Boolean, Integer, Enum as SQLEnum, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy_json import MutableJson
 from typing import List, Optional
+from datetime import datetime
 
 from utility.constants import RequestStatus
+
+# TODO: define indices for faster queries
 
 
 class Base(DeclarativeBase):
@@ -46,6 +49,18 @@ class RequestVerdictNotification(Base):
   message_id: Mapped[int] = mapped_column(primary_key=True)
   request_id: Mapped[int] = mapped_column(ForeignKey("Request.id"))
   request: Mapped["Request"] = relationship(back_populates="verdict_notification")
+
+
+class SDOLogEntry(Base):
+  __tablename__ = "SDOLogEntry"
+
+  # don't set time automatically because all incoming SDOs must be
+  # logged at the EXACT SAME time
+  # the time difference between insertion of two different rows will
+  # make it impossible to reliably retrieve all incoming SDOs
+  # associated with the most recent HOTO
+  time: Mapped[datetime] = mapped_column(primary_key=True)
+  incoming_sdo_id: Mapped[int] = mapped_column(Integer(), primary_key=True)
 
 
 class ChatGroup(Base):
