@@ -129,7 +129,7 @@ def add_handlers(app: Application):
         CommandHandler(
           command="confirm",
           callback=rso_confirm,
-          filters=filters.ChatType.PRIVATE
+          filters=filters.ChatType.PRIVATE,
         ),
       ],
     },

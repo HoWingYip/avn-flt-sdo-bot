@@ -60,6 +60,10 @@ IPPTConversationState = Enum("IPPTConversationState", [
   "CONFIRM",
 ])
 
+HOTOConversationState = Enum("HOTOConversationState", [
+  "IN_PROGRESS",
+])
+
 # RequestCallbackType types must not contain "#"
 # because callback data parsers split by that string
 # I don't think an enum member containing that char would even be legal
