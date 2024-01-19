@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, Boolean, Integer, Enum as SQLEnum, DateTime
+from sqlalchemy import ForeignKey, Boolean, Integer, Enum as SQLEnum, Float, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy_json import MutableJson
 from typing import List, Optional
@@ -54,13 +54,16 @@ class RequestVerdictNotification(Base):
 class SDOLogEntry(Base):
   __tablename__ = "SDOLogEntry"
 
+  id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
   # don't set time automatically because all incoming SDOs must be
   # logged at the EXACT SAME time
   # the time difference between insertion of two different rows will
   # make it impossible to reliably retrieve all incoming SDOs
   # associated with the most recent HOTO
-  time: Mapped[datetime] = mapped_column(primary_key=True)
-  incoming_sdo_id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+  time: Mapped[float] = mapped_column(Float())
+  sdo_id: Mapped[int] = mapped_column(Integer())
+  sdo_info: Mapped[str] = mapped_column(Text())
 
 
 class ChatGroup(Base):
