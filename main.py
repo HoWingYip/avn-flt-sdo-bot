@@ -34,6 +34,7 @@ if __name__ == "__main__":
   features.ippt.init(app)
   features.rso.init(app)
   features.sdo.init(app)
+  features.send_message_to_requestor.init(app)
 
   # internal stuff
   track_chats(app)

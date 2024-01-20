@@ -17,8 +17,7 @@ async def acknowledge(update: Update, context: CallbackContext):
   request_id = parse_callback_data(query.data)[0]
 
   with DBSession(engine) as db_session:
-    select_request_stmt = select(Request).where(Request.id == request_id)
-    request = db_session.scalars(select_request_stmt).first()
+    request = db_session.scalar(select(Request).where(Request.id == request_id))
     request.status = RequestStatus.ACKNOWLEDGED
     db_session.commit()
 
@@ -56,8 +55,7 @@ async def approver_notified(update: Update, context: CallbackContext):
   request_id = parse_callback_data(query.data)[0]
 
   with DBSession(engine) as db_session:
-    select_request_stmt = select(Request).where(Request.id == request_id)
-    request = db_session.scalars(select_request_stmt).first()
+    request = db_session.scalar(select(Request).where(Request.id == request_id))
     request.status = RequestStatus.APPROVER_NOTIFIED
     db_session.commit()
 
@@ -93,8 +91,7 @@ async def accept(update: Update, context: CallbackContext):
   request_id = parse_callback_data(query.data)[0]
 
   with DBSession(engine) as db_session:
-    select_request_stmt = select(Request).where(Request.id == request_id)
-    request = db_session.scalars(select_request_stmt).first()
+    request = db_session.scalar(select(Request).where(Request.id == request_id))
     verdict_notification = await context.bot.send_message(
       chat_id=request.sender_id,
       text=f"Your {request.info['type']} request (ref. {request_id}) has been accepted."
@@ -130,8 +127,7 @@ async def undo_accept(update: Update, context: CallbackContext):
   request_id = parse_callback_data(query.data)[0]
 
   with DBSession(engine) as db_session:
-    select_request_stmt = select(Request).where(Request.id == request_id)
-    request = db_session.scalars(select_request_stmt).first()
+    request = db_session.scalar(select(Request).where(Request.id == request_id))
 
     try:
       assert request.status == RequestStatus.ACCEPTED, \
@@ -177,8 +173,7 @@ async def reject(update: Update, context: CallbackContext):
   request_id = parse_callback_data(query.data)[0]
 
   with DBSession(engine) as db_session:
-    select_request_stmt = select(Request).where(Request.id == request_id)
-    request = db_session.scalars(select_request_stmt).first()
+    request = db_session.scalar(select(Request).where(Request.id == request_id))
     verdict_notification = await context.bot.send_message(
       chat_id=request.sender_id,
       text=f"Your {request.info['type']} request (ref. {request_id}) has been rejected."
@@ -215,8 +210,7 @@ async def undo_reject(update: Update, context: CallbackContext):
   request_id = parse_callback_data(query.data)[0]
 
   with DBSession(engine) as db_session:
-    select_request_stmt = select(Request).where(Request.id == request_id)
-    request = db_session.scalars(select_request_stmt).first()
+    request = db_session.scalar(select(Request).where(Request.id == request_id))
 
     try:
       assert request.status == RequestStatus.REJECTED, \

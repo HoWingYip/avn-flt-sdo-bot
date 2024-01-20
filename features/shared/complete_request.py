@@ -44,7 +44,10 @@ async def complete_request(
         group_id,
         text=f"New {request_type} request from @{update.effective_user.username}:\n"
              f"{summarize_request(request_type, fields)}\n"
-             f"Reference no.: {request.id}",
+             f"<b>Reference no.: {request.id}</b>\n\n"
+             "To send additional information to the requestor via the bot, use:\n"
+             f"<code>/pm {request.id} [text to send]</code>.",
+        parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup((
           (
             InlineKeyboardButton(
