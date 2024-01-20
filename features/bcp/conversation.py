@@ -1,7 +1,7 @@
 from telegram import Update
 from telegram.ext import Application, ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
 
-from features.all import complete_request
+from features.shared import complete_request
 
 from utility.constants import BCPConversationState, PRIVATE_MESSAGE_FILTER
 from utility.validate_datetime_string import validate_datetime_string
@@ -18,7 +18,7 @@ async def bcp_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
   await update.message.reply_text(
     "You are now starting a Base Command Post (BCP) clearance request. To cancel, send /cancel at any time.\n"
-    "What is your rank and full name? (E.g. PTE Jay Chou)"
+    "Please enter your rank and full name. You may enter multiple names or a whole course (e.g. 201 BWC)."
   )
 
   return BCPConversationState.RANK_NAME
@@ -28,26 +28,6 @@ async def bcp_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
   await update.message.reply_text(
     f"Rank/name is {update.message.text}.\n"
-    "When will your BCP clearance start? (E.g. 010125 1200H)"
-  )
-
-  return BCPConversationState.DATE_TIME
-
-async def bcp_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  try:
-    datetime_obj = validate_datetime_string(update.message.text)
-    context.user_data[REQUEST_TYPE]["time"] = datetime_obj
-  except Exception as err:
-    print("Error when validating datetime:", err)
-    await update.message.reply_text(
-      "Invalid date or time. Example of expected format: 010125 1200H\n"
-      "Note that date and time entered must be after the current time.\n"
-      "Please try again."
-    )
-    return BCPConversationState.DATE_TIME
-  
-  await update.message.reply_text(
-    f"Date is {datetime_obj.strftime('%d%m%y')}, time is {datetime_obj.strftime('%H%MH')}.\n"
     "What is the purpose of your BCP clearance request?"
   )
 
@@ -104,9 +84,6 @@ def add_handlers(app: Application):
     states={
       BCPConversationState.RANK_NAME: [
         MessageHandler(callback=bcp_rank_name, filters=PRIVATE_MESSAGE_FILTER),
-      ],
-      BCPConversationState.DATE_TIME: [
-        MessageHandler(callback=bcp_date_time, filters=PRIVATE_MESSAGE_FILTER),
       ],
       BCPConversationState.PURPOSE: [
         MessageHandler(callback=bcp_purpose, filters=PRIVATE_MESSAGE_FILTER),
