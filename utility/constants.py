@@ -31,9 +31,8 @@ FIELD_NAME_MAPPINGS = {
   },
   "IPPT booking": {
     "rank_name": "Rank/name",
-    "time": "Time",
     "participants": "Participants",
-    "additional_info": "Additional info",
+    "additional_info": "Additional considerations",
   },
 }
 
@@ -58,7 +57,6 @@ RSOConversationState = Enum("RSOConversationState", [
 
 IPPTConversationState = Enum("IPPTConversationState", [
   "RANK_NAME",
-  "DATE_TIME",
   "PARTICIPANTS",
   "INFO",
   "CONFIRM",

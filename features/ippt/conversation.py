@@ -28,27 +28,7 @@ async def ippt_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
   await update.message.reply_text(
     f"Rank/name is {update.message.text}.\n"
-    "At what date and time do you want your IPPT to be held? (E.g. 010125 1200H)"
-  )
-
-  return IPPTConversationState.DATE_TIME
-
-async def ippt_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  try:
-    datetime_obj = validate_datetime_string(update.message.text)
-    context.user_data[REQUEST_TYPE]["time"] = datetime_obj
-  except Exception as err:
-    print("Error when validating datetime:", err)
-    await update.message.reply_text(
-      "Invalid date or time. Example of expected format: 010125 1200H\n"
-      "Note that date and time entered must be after the current time.\n"
-      "Please try again."
-    )
-    return IPPTConversationState.DATE_TIME
-  
-  await update.message.reply_text(
-    f"Date is {datetime_obj.strftime('%d%m%y')}, time is {datetime_obj.strftime('%H%MH')}.\n"
-    "What are the ranks and full names of all IPPT participants? Enter one name per line."
+    "What are the ranks and full names of all IPPT participants you are registering for? Enter one name per line."
   )
 
   return IPPTConversationState.PARTICIPANTS
@@ -61,7 +41,7 @@ async def ippt_participants(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return IPPTConversationState.PARTICIPANTS
   
   await update.message.reply_text(
-    f"You have entered {len(names)} names:\n" + 
+    f"You have entered {len(names)} name{'s' if len(names) > 1 else ''}:\n" + 
     "".join(f"{i+1}. {name}\n" for i, name in enumerate(names)) +
     "\nAre there any further considerations you would like us to cater for? If not, simply send 'Nil'."
   )
@@ -108,9 +88,6 @@ def add_handlers(app: Application):
     states={
       IPPTConversationState.RANK_NAME: [
         MessageHandler(callback=ippt_rank_name, filters=PRIVATE_MESSAGE_FILTER),        
-      ],
-      IPPTConversationState.DATE_TIME: [
-        MessageHandler(callback=ippt_date_time, filters=PRIVATE_MESSAGE_FILTER),
       ],
       IPPTConversationState.PARTICIPANTS: [
         MessageHandler(callback=ippt_participants, filters=PRIVATE_MESSAGE_FILTER),
