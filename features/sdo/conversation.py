@@ -5,8 +5,7 @@ import time
 
 from utility.constants import HOTOConversationState
 
-from sqlalchemy import select, func, distinct
-from sqlalchemy.sql.expression import tuple_
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session as DBSession
 from db import engine
 from db.classes import SDOLogEntry
@@ -32,26 +31,26 @@ async def sdo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         row.sdo_info,
       ))
     except TelegramError:
-      # No user with that ID. Account probably deleted.
+      # No user with that ID. Account was probably deleted.
       pass
-
-  await update.message.reply_text(
-    "Current SDOs:\n" +
-    "\n".join(
-      f"{sdo_info}: @{sdo_username}"
-      for sdo_username, sdo_info in sdo_usernames_and_info
+  
+  if sdo_usernames_and_info:
+    await update.message.reply_text(
+      "Current SDOs:\n" +
+      "\n".join(
+        f"{sdo_info}: @{sdo_username}"
+        for sdo_username, sdo_info in sdo_usernames_and_info
+      )
     )
-  )
+  else:
+    await update.message.reply_text("No SDOs are on duty.")
 
 async def hoto_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
   if context.chat_data.get("in_conversation"):
     return ConversationHandler.END
 
-  current_sdo_ids = (row.sdo_id for row in get_current_sdos())
-  with DBSession(engine) as db_session:
-    num_log_entries = db_session.scalar(select(func.count(SDOLogEntry.id)))
-  
-  if num_log_entries > 0 and update.effective_user.id not in current_sdo_ids:
+  current_sdo_ids = [row.sdo_id for row in get_current_sdos()]
+  if current_sdo_ids and update.effective_user.id not in current_sdo_ids:
     await update.message.reply_text(
       "You are not a current SDO. Only current SDOs may initiate a HOTO."
     )
