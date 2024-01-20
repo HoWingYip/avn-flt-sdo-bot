@@ -86,4 +86,6 @@ RequestStatus = Enum("RequestStatus", [
   "APPROVER_NOTIFIED",
   "ACCEPTED",
   "REJECTED",
+  "ACCEPTANCE_REVOKED",
+  "REJECTION_REVOKED",
 ])

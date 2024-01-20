@@ -40,6 +40,12 @@ async def acknowledge(update: Update, context: CallbackContext):
               callback_data=make_callback_data(RequestCallbackType.APPROVER_NOTIFIED, request.id),
             ),
           ),
+          (
+            InlineKeyboardButton(
+              text="Reject without notifying approver",
+              callback_data=make_callback_data(RequestCallbackType.REJECT, request.id),
+            ),
+          ),
         ))
       )
 
@@ -139,7 +145,7 @@ async def undo_accept(update: Update, context: CallbackContext):
       chat_id=request.verdict_notification.chat_id,
       message_id=request.verdict_notification.message_id,
     )
-    request.status = RequestStatus.APPROVER_NOTIFIED
+    request.status = RequestStatus.ACCEPTANCE_REVOKED
     db_session.delete(request.verdict_notification)
     request.verdict_notification = None
     
@@ -224,7 +230,7 @@ async def undo_reject(update: Update, context: CallbackContext):
       chat_id=request.verdict_notification.chat_id,
       message_id=request.verdict_notification.message_id,
     )
-    request.status = RequestStatus.APPROVER_NOTIFIED
+    request.status = RequestStatus.REJECTION_REVOKED
     db_session.delete(request.verdict_notification)
     request.verdict_notification = None
 

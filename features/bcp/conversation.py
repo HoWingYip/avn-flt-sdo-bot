@@ -58,7 +58,7 @@ async def bcp_vehicle_number(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
   await update.message.reply_text(
     f"Vehicle plate number is {update.message.text}.\n"
-    "What if the purpose of your BCP clearance request?"
+    "What is the purpose of your BCP clearance request?"
   )
 
   return BCPConversationState.PURPOSE
