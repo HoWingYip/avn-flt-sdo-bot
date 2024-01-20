@@ -1,7 +1,7 @@
 from telegram import Update
 from telegram.ext import filters, Application, ConversationHandler, CommandHandler, MessageHandler, ContextTypes
 
-from features.all import complete_request
+from features.shared import complete_request
 
 from utility.constants import RSOConversationState, PRIVATE_MESSAGE_FILTER
 from utility.validate_datetime_string import validate_datetime_string

@@ -5,7 +5,7 @@ from utility.constants import IPPTConversationState, PRIVATE_MESSAGE_FILTER
 from utility.validate_datetime_string import validate_datetime_string
 from utility.summarize_request import summarize_request
 
-from features.all import complete_request
+from features.shared import complete_request
 
 REQUEST_TYPE = "IPPT booking"
 

@@ -1,1 +1,1 @@
-from features import all, bcp, ippt, rso, sdo
+from features import shared, bcp, ippt, rso, sdo
