@@ -18,6 +18,11 @@ async def acknowledge(update: Update, context: CallbackContext):
 
   with DBSession(engine) as db_session:
     request = db_session.scalar(select(Request).where(Request.id == request_id))
+    if request is None:
+      logger.warning(f"acknowledge callback received nonexistent request ID {request_id}.")
+      await query.answer()
+      return
+
     request.status = RequestStatus.ACKNOWLEDGED
     db_session.commit()
 
@@ -56,6 +61,11 @@ async def approver_notified(update: Update, context: CallbackContext):
 
   with DBSession(engine) as db_session:
     request = db_session.scalar(select(Request).where(Request.id == request_id))
+    if request is None:
+      logger.warning(f"approver_notified callback received nonexistent request ID {request_id}.")
+      await query.answer()
+      return
+
     request.status = RequestStatus.APPROVER_NOTIFIED
     db_session.commit()
 
@@ -92,7 +102,11 @@ async def approve(update: Update, context: CallbackContext):
 
   with DBSession(engine) as db_session:
     request = db_session.scalar(select(Request).where(Request.id == request_id))
-    
+    if request is None:
+      logger.warning(f"approve callback received nonexistent request ID {request_id}.")
+      await query.answer()
+      return
+
     requires_independent_approval = REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL[request.info["type"]]
     approval_type = "approved" if requires_independent_approval else "acknowledged"
     
@@ -133,6 +147,10 @@ async def undo_approve(update: Update, context: CallbackContext):
 
   with DBSession(engine) as db_session:
     request = db_session.scalar(select(Request).where(Request.id == request_id))
+    if request is None:
+      logger.warning(f"undo_approve callback received nonexistent request ID {request_id}.")
+      await query.answer()
+      return
 
     try:
       assert request.status == RequestStatus.APPROVED, \
@@ -190,6 +208,11 @@ async def reject(update: Update, context: CallbackContext):
 
   with DBSession(engine) as db_session:
     request = db_session.scalar(select(Request).where(Request.id == request_id))
+    if request is None:
+      logger.warning(f"reject callback received nonexistent request ID {request_id}.")
+      await query.answer()
+      return
+
     verdict_notification = await context.bot.send_message(
       chat_id=request.sender_id,
       text=f"Your {request.info['type']} request (ref. {request_id}) has been rejected."
@@ -221,12 +244,15 @@ async def reject(update: Update, context: CallbackContext):
   await query.answer()
 
 async def undo_reject(update: Update, context: CallbackContext):
-  print("Undoing rejection")
   query = update.callback_query
   request_id = parse_callback_data(query.data)[0]
 
   with DBSession(engine) as db_session:
     request = db_session.scalar(select(Request).where(Request.id == request_id))
+    if request is None:
+      logger.warning(f"undo_reject callback received nonexistent request ID {request_id}.")
+      await query.answer()
+      return
 
     try:
       assert request.status == RequestStatus.REJECTED, \
