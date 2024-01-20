@@ -37,6 +37,12 @@ FIELD_NAME_MAPPINGS = {
   },
 }
 
+REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL = {
+  "BCP clearance": True,
+  "RSO": False,
+  "IPPT booking": True,
+}
+
 BCPConversationState = Enum("BCPConversationState", [
   "RANK_NAME",
   "LOCATION",
@@ -67,16 +73,16 @@ HOTOConversationState = Enum("HOTOConversationState", [
   "IN_PROGRESS",
 ])
 
-# RequestCallbackType types must not contain "#"
-# because callback data parsers split by that string
-# I don't think an enum member containing that char would even be legal
-# but just in case
+# RequestCallbackType types must not contain "#" because all callback data
+# parsers split by that character.
+# Enum members containing "#" are inaccessible through dot notation but this is
+# just in case someone attempts to pull something stupid using getattr().
 RequestCallbackType = Enum("RSOCallbackType", [
   "ACKNOWLEDGE",
   "APPROVER_NOTIFIED",
-  "ACCEPT",
+  "APPROVE",
   "REJECT",
-  "UNDO_ACCEPT",
+  "UNDO_APPROVE",
   "UNDO_REJECT",
 ])
 
@@ -84,8 +90,8 @@ RequestStatus = Enum("RequestStatus", [
   "PENDING_ACKNOWLEDGEMENT",
   "ACKNOWLEDGED",
   "APPROVER_NOTIFIED",
-  "ACCEPTED",
+  "APPROVED",
   "REJECTED",
-  "ACCEPTANCE_REVOKED",
+  "APPROVAL_REVOKED",
   "REJECTION_REVOKED",
 ])

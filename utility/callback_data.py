@@ -1,7 +1,7 @@
 from enum import Enum
 from telegram import InlineKeyboardButton
 
-def make_callback_data(callback_type: Enum, *data):
+def make_callback_data(callback_type: Enum, data):
   """
   Constructs callback data for a `telegram.InlineKeyboardButton`.
   Throws if length of resulting callback data is not within

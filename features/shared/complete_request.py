@@ -3,7 +3,7 @@ from telegram.ext import ContextTypes
 
 from utility.summarize_request import summarize_request
 from utility.callback_data import make_callback_data
-from utility.constants import RequestCallbackType, FIELD_NAME_MAPPINGS
+from utility.constants import RequestCallbackType, REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
@@ -38,21 +38,25 @@ async def complete_request(
       "If you wish to carry out more actions, send /help for a list of commands."
     )
 
-    select_group_stmt = select(ChatGroup.id)
-    for group_id in db_session.scalars(select_group_stmt):
+    for group_id in db_session.scalars(select(ChatGroup.id)):
       sent_message = await context.bot.send_message(
         group_id,
         text=f"New {request_type} request from @{update.effective_user.username}:\n"
              f"{summarize_request(request_type, fields)}\n"
              f"<b>Reference no.: {request.id}</b>\n\n"
-             "To send additional information to the requestor via the bot, use:\n"
+             "To send additional information to this requestor via the bot, use:\n"
              f"<code>/pm {request.id} [text to send]</code>.",
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup((
           (
             InlineKeyboardButton(
               text="Acknowledge",
-              callback_data=make_callback_data(RequestCallbackType.ACKNOWLEDGE, request.id)
+              callback_data=make_callback_data(
+                callback_type=RequestCallbackType.ACKNOWLEDGE
+                              if REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL[request_type]
+                              else RequestCallbackType.APPROVE,
+                data=(request.id,)
+              )
             ),
           ),
         )),

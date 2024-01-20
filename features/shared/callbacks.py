@@ -2,7 +2,7 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CallbackContext, CallbackQueryHandler
 import logging
 
-from utility.constants import RequestCallbackType, RequestStatus
+from utility.constants import RequestCallbackType, RequestStatus, REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL
 from utility.callback_data import match_callback_type, make_callback_data, parse_callback_data
 
 from sqlalchemy.orm import Session as DBSession
@@ -36,13 +36,13 @@ async def acknowledge(update: Update, context: CallbackContext):
           (
             InlineKeyboardButton(
               text="Notify requestor that approving party has been informed",
-              callback_data=make_callback_data(RequestCallbackType.APPROVER_NOTIFIED, request.id),
+              callback_data=make_callback_data(RequestCallbackType.APPROVER_NOTIFIED, (request.id,)),
             ),
           ),
           (
             InlineKeyboardButton(
               text="Reject without notifying approver",
-              callback_data=make_callback_data(RequestCallbackType.REJECT, request.id),
+              callback_data=make_callback_data(RequestCallbackType.REJECT, (request.id,)),
             ),
           ),
         ))
@@ -62,7 +62,7 @@ async def approver_notified(update: Update, context: CallbackContext):
     await context.bot.send_message(
       chat_id=request.sender_id,
       text=f"The relevant approving party has been informed of your {request.info['type']} request (ref. {request_id}). "
-           "You will be notified when it is accepted or rejected."
+           "You will be notified when it is approved or rejected."
     )
 
     # update inline keyboards of all notification messages associated with this request
@@ -73,12 +73,12 @@ async def approver_notified(update: Update, context: CallbackContext):
         reply_markup=InlineKeyboardMarkup((
           (
             InlineKeyboardButton(
-              text="Accept",
-              callback_data=make_callback_data(RequestCallbackType.ACCEPT, request.id)
+              text="Approve",
+              callback_data=make_callback_data(RequestCallbackType.APPROVE, (request.id,))
             ),
             InlineKeyboardButton(
               text="Reject",
-              callback_data=make_callback_data(RequestCallbackType.REJECT, request.id)
+              callback_data=make_callback_data(RequestCallbackType.REJECT, (request.id,))
             ),
           ),
         )),
@@ -86,18 +86,23 @@ async def approver_notified(update: Update, context: CallbackContext):
 
   await query.answer()
 
-async def accept(update: Update, context: CallbackContext):
+async def approve(update: Update, context: CallbackContext):
   query = update.callback_query
   request_id = parse_callback_data(query.data)[0]
 
   with DBSession(engine) as db_session:
     request = db_session.scalar(select(Request).where(Request.id == request_id))
+    
+    requires_independent_approval = REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL[request.info["type"]]
+    approval_type = "approved" if requires_independent_approval else "acknowledged"
+    
     verdict_notification = await context.bot.send_message(
       chat_id=request.sender_id,
-      text=f"Your {request.info['type']} request (ref. {request_id}) has been accepted."
+      text=f"Your {request.info['type']} request (ref. {request_id}) has been {approval_type}." +
+           ('' if requires_independent_approval else ' (No approval is necessary.)'),
     )
 
-    request.status = RequestStatus.ACCEPTED
+    request.status = RequestStatus.APPROVED
     request.verdict_notification = RequestVerdictNotification(
       chat_id=request.sender_id,
       message_id=verdict_notification.id,
@@ -113,8 +118,8 @@ async def accept(update: Update, context: CallbackContext):
         reply_markup=InlineKeyboardMarkup((
           (
             InlineKeyboardButton(
-              text=f"Accepted by @{update.effective_user.username}. Click to undo.",
-              callback_data=make_callback_data(RequestCallbackType.UNDO_ACCEPT, request_id)
+              text=f"{approval_type[0].upper()}{approval_type[1:]} by @{update.effective_user.username}. Click to undo.",
+              callback_data=make_callback_data(RequestCallbackType.UNDO_APPROVE, (request.id,))
             ),
           ),
         )),
@@ -122,7 +127,7 @@ async def accept(update: Update, context: CallbackContext):
 
   await query.answer()
 
-async def undo_accept(update: Update, context: CallbackContext):
+async def undo_approve(update: Update, context: CallbackContext):
   query = update.callback_query
   request_id = parse_callback_data(query.data)[0]
 
@@ -130,10 +135,10 @@ async def undo_accept(update: Update, context: CallbackContext):
     request = db_session.scalar(select(Request).where(Request.id == request_id))
 
     try:
-      assert request.status == RequestStatus.ACCEPTED, \
-        f"Tried to undo acceptance of request {request_id} but it was not accepted"
+      assert request.status == RequestStatus.APPROVED, \
+        f"Tried to undo approval of request {request_id} but it was not approved"
       assert request.verdict_notification is not None, \
-        f"Tried to undo acceptance of request {request_id} but verdict_notification was null"
+        f"Tried to undo approval of request {request_id} but verdict_notification was null"
     except AssertionError as err:
       logger.error(err)
 
@@ -141,29 +146,40 @@ async def undo_accept(update: Update, context: CallbackContext):
       chat_id=request.verdict_notification.chat_id,
       message_id=request.verdict_notification.message_id,
     )
-    request.status = RequestStatus.ACCEPTANCE_REVOKED
+    request.status = RequestStatus.APPROVAL_REVOKED
     db_session.delete(request.verdict_notification)
     request.verdict_notification = None
     
     db_session.commit()
 
-    # TODO: exact same code appears in acknowledge(). Extract to separate function?
+    if REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL[request.info["type"]]:
+      reply_markup = InlineKeyboardMarkup((
+        (
+          InlineKeyboardButton(
+            text="Approve",
+            callback_data=make_callback_data(RequestCallbackType.APPROVE, (request.id,))
+          ),
+          InlineKeyboardButton(
+            text="Reject",
+            callback_data=make_callback_data(RequestCallbackType.REJECT, (request.id,))
+          ),
+        ),
+      ))
+    else:
+      reply_markup = InlineKeyboardMarkup((
+        (
+          InlineKeyboardButton(
+            text="Acknowledge",
+            callback_data=make_callback_data(RequestCallbackType.APPROVE, (request.id,)),
+          ),
+        ),
+      ))
+
     for message in request.notifications:
       await context.bot.edit_message_reply_markup(
         chat_id=message.chat_id,
         message_id=message.message_id,
-        reply_markup=InlineKeyboardMarkup((
-          (
-            InlineKeyboardButton(
-              text="Accept",
-              callback_data=make_callback_data(RequestCallbackType.ACCEPT, request.id)
-            ),
-            InlineKeyboardButton(
-              text="Reject",
-              callback_data=make_callback_data(RequestCallbackType.REJECT, request.id)
-            ),
-          ),
-        )),
+        reply_markup=reply_markup,
       )
 
   await query.answer()    
@@ -196,7 +212,7 @@ async def reject(update: Update, context: CallbackContext):
           (
             InlineKeyboardButton(
               text=f"Rejected by @{update.effective_user.username}. Click to undo.",
-              callback_data=make_callback_data(RequestCallbackType.UNDO_REJECT, request_id)
+              callback_data=make_callback_data(RequestCallbackType.UNDO_REJECT, (request.id,))
             ),
           ),
         )),
@@ -230,7 +246,6 @@ async def undo_reject(update: Update, context: CallbackContext):
 
     db_session.commit()
 
-    # TODO: exact same code appears in acknowledge(). Extract to separate function?
     for message in request.notifications:
       await context.bot.edit_message_reply_markup(
         chat_id=message.chat_id,
@@ -238,12 +253,12 @@ async def undo_reject(update: Update, context: CallbackContext):
         reply_markup=InlineKeyboardMarkup((
           (
             InlineKeyboardButton(
-              text="Accept",
-              callback_data=make_callback_data(RequestCallbackType.ACCEPT, request.id)
+              text="Approve",
+              callback_data=make_callback_data(RequestCallbackType.APPROVE, (request.id,))
             ),
             InlineKeyboardButton(
               text="Reject",
-              callback_data=make_callback_data(RequestCallbackType.REJECT, request.id)
+              callback_data=make_callback_data(RequestCallbackType.REJECT, (request.id,))
             ),
           ),
         )),
@@ -261,16 +276,16 @@ def add_handlers(app: Application):
     pattern=match_callback_type(RequestCallbackType.APPROVER_NOTIFIED),
   ))
   app.add_handler(CallbackQueryHandler(
-    accept,
-    pattern=match_callback_type(RequestCallbackType.ACCEPT),
+    approve,
+    pattern=match_callback_type(RequestCallbackType.APPROVE),
   ))
   app.add_handler(CallbackQueryHandler(
     reject,
     pattern=match_callback_type(RequestCallbackType.REJECT),
   ))
   app.add_handler(CallbackQueryHandler(
-    undo_accept,
-    pattern=match_callback_type(RequestCallbackType.UNDO_ACCEPT),
+    undo_approve,
+    pattern=match_callback_type(RequestCallbackType.UNDO_APPROVE),
   ))
   app.add_handler(CallbackQueryHandler(
     undo_reject,
