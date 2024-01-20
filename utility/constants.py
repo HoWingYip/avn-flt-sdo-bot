@@ -16,7 +16,9 @@ FIELD_NAME_MAPPINGS = {
   # Illegal names are: "in_conversation"
   "BCP clearance": {
     "rank_name": "Rank/name",
-    "time": "Time",
+    "location": "Location",
+    "course": "Course(s)",
+    "vehicle_number": "Vehicle plate number",
     "purpose": "Purpose",
     "additional_info": "Additional info",
   },
@@ -32,12 +34,14 @@ FIELD_NAME_MAPPINGS = {
     "time": "Time",
     "participants": "Participants",
     "additional_info": "Additional info",
-  }
+  },
 }
 
 BCPConversationState = Enum("BCPConversationState", [
   "RANK_NAME",
-  "DATE_TIME",
+  "LOCATION",
+  "COURSE",
+  "VEHICLE_NUMBER",
   "PURPOSE",
   "INFO",
   "CONFIRM",

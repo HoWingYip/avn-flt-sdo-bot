@@ -28,7 +28,37 @@ async def bcp_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
   await update.message.reply_text(
     f"Rank/name is {update.message.text}.\n"
-    "What is the purpose of your BCP clearance request?"
+    "What is the location of your BCP clearance request?"
+  )
+
+  return BCPConversationState.LOCATION
+
+async def bcp_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
+  context.user_data[REQUEST_TYPE]["location"] = update.message.text
+
+  await update.message.reply_text(
+    f"BCP location is {update.message.text}.\n"
+    "What is/are the course(s) under which you are requesting clearance?"
+  )
+
+  return BCPConversationState.COURSE
+
+async def bcp_course(update: Update, context: ContextTypes.DEFAULT_TYPE):
+  context.user_data[REQUEST_TYPE]["course"] = update.message.text
+
+  await update.message.reply_text(
+    f"Course(s) is/are {update.message.text}.\n"
+    "What is your vehicle plate number? If not applicable, simply send 'Nil'."
+  )
+
+  return BCPConversationState.VEHICLE_NUMBER
+
+async def bcp_vehicle_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
+  context.user_data[REQUEST_TYPE]["vehicle_number"] = update.message.text
+
+  await update.message.reply_text(
+    f"Vehicle plate number is {update.message.text}.\n"
+    "What if the purpose of your BCP clearance request?"
   )
 
   return BCPConversationState.PURPOSE
@@ -84,6 +114,15 @@ def add_handlers(app: Application):
     states={
       BCPConversationState.RANK_NAME: [
         MessageHandler(callback=bcp_rank_name, filters=PRIVATE_MESSAGE_FILTER),
+      ],
+      BCPConversationState.LOCATION: [
+        MessageHandler(callback=bcp_location, filters=PRIVATE_MESSAGE_FILTER),
+      ],
+      BCPConversationState.COURSE: [
+        MessageHandler(callback=bcp_course, filters=PRIVATE_MESSAGE_FILTER),
+      ],
+      BCPConversationState.VEHICLE_NUMBER: [
+        MessageHandler(callback=bcp_vehicle_number, filters=PRIVATE_MESSAGE_FILTER),
       ],
       BCPConversationState.PURPOSE: [
         MessageHandler(callback=bcp_purpose, filters=PRIVATE_MESSAGE_FILTER),
