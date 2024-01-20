@@ -5,8 +5,10 @@ from telegram.ext import filters
 HELP_MESSAGE = cleandoc("""
   List of commands:
   /bcp - Request Base Command Post Clearance
-  /rso - Request to report sick outside
+  /ippt - Request to book an IPPT session
+  /rso - Inform the SDO that you will report sick outside
   /phonebook - List important phone numbers
+  /sdo - List the current Student Duty Officers
   /help - Display this list of commands
 """)
 
