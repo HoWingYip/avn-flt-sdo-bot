@@ -7,7 +7,6 @@ HELP_MESSAGE = cleandoc("""
   /bcp - Request Base Command Post Clearance
   /ippt - Request to book an IPPT session
   /rso - Inform the SDO that you will report sick outside
-  /phonebook - List important phone numbers
   /sdo - List the current Student Duty Officers
   /help - Display this list of commands
 """)
@@ -74,6 +73,7 @@ HOTOConversationState = Enum("HOTOConversationState", [
 # but just in case
 RequestCallbackType = Enum("RSOCallbackType", [
   "ACKNOWLEDGE",
+  "APPROVER_NOTIFIED",
   "ACCEPT",
   "REJECT",
   "UNDO_ACCEPT",
@@ -81,7 +81,9 @@ RequestCallbackType = Enum("RSOCallbackType", [
 ])
 
 RequestStatus = Enum("RequestStatus", [
+  "PENDING_ACKNOWLEDGEMENT",
+  "ACKNOWLEDGED",
+  "APPROVER_NOTIFIED",
   "ACCEPTED",
   "REJECTED",
-  "PENDING",
 ])

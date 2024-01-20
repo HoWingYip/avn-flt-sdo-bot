@@ -41,7 +41,7 @@ async def ippt_participants(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return IPPTConversationState.PARTICIPANTS
   
   await update.message.reply_text(
-    f"You have entered {len(names)} name{'s' if len(names) > 1 else ''}:\n" + 
+    f"You have entered {len(names)} name{'s' if len(names) > 1 else ''}:\n" +
     "".join(f"{i+1}. {name}\n" for i, name in enumerate(names)) +
     "\nAre there any further considerations you would like us to cater for? If not, simply send 'Nil'."
   )

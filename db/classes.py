@@ -19,10 +19,9 @@ class Request(Base):
   id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
   sender_id: Mapped[int] = mapped_column(Integer())
   info: Mapped[dict] = mapped_column(MutableJson)
-  acknowledged: Mapped[bool] = mapped_column(Boolean(), default=False)
   status: Mapped[RequestStatus] = mapped_column(
     SQLEnum(RequestStatus, create_constraint=False),
-    default=RequestStatus.PENDING,
+    default=RequestStatus.PENDING_ACKNOWLEDGEMENT,
   )
   
   notifications: Mapped[List["RequestNotification"]] = relationship(

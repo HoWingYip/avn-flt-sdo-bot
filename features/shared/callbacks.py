@@ -19,14 +19,47 @@ async def acknowledge(update: Update, context: CallbackContext):
   with DBSession(engine) as db_session:
     select_request_stmt = select(Request).where(Request.id == request_id)
     request = db_session.scalars(select_request_stmt).first()
+    request.status = RequestStatus.ACKNOWLEDGED
+    db_session.commit()
+
     await context.bot.send_message(
       chat_id=request.sender_id,
-      text=f"Your {request.info['type']} request (ref. {request_id}) has been acknowledged and the relevant approving party has been notified. "
-           f"You will be notified when your request is accepted or rejected."
+      text=f"Your {request.info['type']} request (ref. {request_id}) has been acknowledged by the SDO. "
+           "You will be notified when the relevant approving party has been informed."
     )
 
-    request.acknowledged = True
+    # update inline keyboards of all notification messages associated with this request
+    for message in request.notifications:
+      await context.bot.edit_message_reply_markup(
+        chat_id=message.chat_id,
+        message_id=message.message_id,
+        reply_markup=InlineKeyboardMarkup((
+          (
+            InlineKeyboardButton(
+              text="Notify requestor that approving party has been informed",
+              callback_data=make_callback_data(RequestCallbackType.APPROVER_NOTIFIED, request.id),
+            ),
+          ),
+        ))
+      )
+
+  await query.answer()
+
+async def approver_notified(update: Update, context: CallbackContext):
+  query = update.callback_query
+  request_id = parse_callback_data(query.data)[0]
+
+  with DBSession(engine) as db_session:
+    select_request_stmt = select(Request).where(Request.id == request_id)
+    request = db_session.scalars(select_request_stmt).first()
+    request.status = RequestStatus.APPROVER_NOTIFIED
     db_session.commit()
+
+    await context.bot.send_message(
+      chat_id=request.sender_id,
+      text=f"The relevant approving party has been informed of your {request.info['type']} request (ref. {request_id}). "
+           "You will be notified when it is accepted or rejected."
+    )
 
     # update inline keyboards of all notification messages associated with this request
     for message in request.notifications:
@@ -106,7 +139,7 @@ async def undo_accept(update: Update, context: CallbackContext):
       chat_id=request.verdict_notification.chat_id,
       message_id=request.verdict_notification.message_id,
     )
-    request.status = RequestStatus.PENDING
+    request.status = RequestStatus.APPROVER_NOTIFIED
     db_session.delete(request.verdict_notification)
     request.verdict_notification = None
     
@@ -154,7 +187,6 @@ async def reject(update: Update, context: CallbackContext):
     db_session.add(request.verdict_notification)
     db_session.commit()
 
-    # TODO: allow undoing rejection (need to delete private message sent to user)
     for message in request.notifications:
       await context.bot.edit_message_reply_markup(
         chat_id=message.chat_id,
@@ -192,7 +224,7 @@ async def undo_reject(update: Update, context: CallbackContext):
       chat_id=request.verdict_notification.chat_id,
       message_id=request.verdict_notification.message_id,
     )
-    request.status = RequestStatus.PENDING
+    request.status = RequestStatus.APPROVER_NOTIFIED
     db_session.delete(request.verdict_notification)
     request.verdict_notification = None
 
@@ -225,6 +257,10 @@ def add_handlers(app: Application):
     pattern=match_callback_type(RequestCallbackType.ACKNOWLEDGE),
   ))
   app.add_handler(CallbackQueryHandler(
+    approver_notified,
+    pattern=match_callback_type(RequestCallbackType.APPROVER_NOTIFIED),
+  ))
+  app.add_handler(CallbackQueryHandler(
     accept,
     pattern=match_callback_type(RequestCallbackType.ACCEPT),
   ))
@@ -241,7 +277,7 @@ def add_handlers(app: Application):
     pattern=match_callback_type(RequestCallbackType.UNDO_REJECT),
   ))
   app.add_handler(CallbackQueryHandler(
-    lambda update, context: print(
+    lambda update, context: logger.warning(
       f"Unhandled callback message. Data: {update.callback_query.data!r}"
     ),
   ))
