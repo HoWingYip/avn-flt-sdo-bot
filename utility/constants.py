@@ -7,6 +7,7 @@ HELP_MESSAGE = cleandoc("""
   /bcp - Request Base Command Post Clearance
   /ippt - Request to book an IPPT session
   /rso - Inform the SDO that you will report sick outside
+  /mc - Inform the SDO of your medical certificate
   /sdo - List the current Student Duty Officers
   /help - Display this list of commands
 """)
