@@ -4,7 +4,7 @@ from telegram.ext import Application, ContextTypes, ConversationHandler, Command
 from features.shared import complete_request
 
 from utility.constants import BCPConversationState, PRIVATE_MESSAGE_FILTER
-from utility.validate_datetime_string import validate_datetime_string
+from utility.validate_datetime_string import validate_date_string
 from utility.summarize_request import summarize_request
 
 REQUEST_TYPE = "BCP clearance"
@@ -27,8 +27,24 @@ async def bcp_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data[REQUEST_TYPE]["rank_name"] = update.message.text
 
   await update.message.reply_text(
-    "What is the location of your BCP clearance request?"
+    "On what date will your BCP clearance start? (E.g. 010125)"
   )
+  return BCPConversationState.DATE
+
+async def bcp_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
+  try:
+    date_obj = validate_date_string(update.message.text, "%d%m%y")
+    context.user_data[REQUEST_TYPE]["date"] = date_obj
+  except Exception as err:
+    print("Error when validating date:", err)
+    await update.message.reply_text(
+      "Invalid date. Example of expected format: 010125\n"
+      "Note that date entered cannot be before today.\n"
+      "Please try again."
+    )
+    return BCPConversationState.DATE
+
+  await update.message.reply_text("Which base are you seeking clearance to access?")
   return BCPConversationState.LOCATION
 
 async def bcp_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -110,6 +126,9 @@ def add_handlers(app: Application):
     states={
       BCPConversationState.RANK_NAME: [
         MessageHandler(callback=bcp_rank_name, filters=PRIVATE_MESSAGE_FILTER),
+      ],
+      BCPConversationState.DATE: [
+        MessageHandler(callback=bcp_date, filters=PRIVATE_MESSAGE_FILTER),
       ],
       BCPConversationState.LOCATION: [
         MessageHandler(callback=bcp_location, filters=PRIVATE_MESSAGE_FILTER),

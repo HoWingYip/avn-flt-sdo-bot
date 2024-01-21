@@ -17,6 +17,7 @@ FIELD_NAME_MAPPINGS = {
   # Illegal names are: "in_conversation"
   "BCP clearance": {
     "rank_name": "Rank/name",
+    "date": "Date",
     "location": "Location",
     "course": "Course(s)",
     "vehicle_number": "Vehicle plate number",
@@ -32,6 +33,7 @@ FIELD_NAME_MAPPINGS = {
   },
   "IPPT booking": {
     "rank_name": "Rank/name",
+    "date": "Date",
     "participants": "Participants",
     "additional_info": "Additional considerations",
   },
@@ -52,6 +54,7 @@ REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL = {
 
 BCPConversationState = Enum("BCPConversationState", [
   "RANK_NAME",
+  "DATE",
   "LOCATION",
   "COURSE",
   "VEHICLE_NUMBER",
@@ -79,6 +82,7 @@ MCConversationState = Enum("MCConversationState", [
 
 IPPTConversationState = Enum("IPPTConversationState", [
   "RANK_NAME",
+  "DATE",
   "PARTICIPANTS",
   "INFO",
   "CONFIRM",
