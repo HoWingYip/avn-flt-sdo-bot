@@ -44,7 +44,7 @@ async def bcp_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return BCPConversationState.DATE
 
-  await update.message.reply_text("Which base are you seeking clearance to access?")
+  await update.message.reply_text("What location will you be accessing? (E.g. 7SD)")
   return BCPConversationState.LOCATION
 
 async def bcp_location(update: Update, context: ContextTypes.DEFAULT_TYPE):

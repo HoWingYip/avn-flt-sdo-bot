@@ -26,7 +26,8 @@ async def ippt_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data[REQUEST_TYPE]["rank_name"] = update.message.text
 
   await update.message.reply_text(
-    "On what date do you want your IPPT to be held? (E.g. 010125)"
+    "What date would you like to book for your IPPT? (E.g. 010125)\n"
+    "Note: IPPTs are usually held on Wednesday mornings."
   )
   return IPPTConversationState.DATE
 
