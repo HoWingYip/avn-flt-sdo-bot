@@ -75,7 +75,13 @@ async def bcp_additional_info(update: Update, context: ContextTypes.DEFAULT_TYPE
   return BCPConversationState.CONFIRM
 
 async def bcp_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  await complete_request(request_type=REQUEST_TYPE, update=update, context=context)
+  await complete_request(
+    request_type=REQUEST_TYPE,
+    update=update,
+    context=context,
+    additional_completion_text="This is not to be confused with the BCP clearance number, "
+                               "which you will receive later."
+  )
   
   context.user_data["in_conversation"] = False
   return ConversationHandler.END

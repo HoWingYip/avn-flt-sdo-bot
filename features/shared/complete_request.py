@@ -13,7 +13,8 @@ from db.classes import Request, RequestNotification, ChatGroup
 async def complete_request(
     request_type: str,
     update: Update,
-    context: ContextTypes.DEFAULT_TYPE
+    context: ContextTypes.DEFAULT_TYPE,
+    additional_completion_text: str = "",
 ):
   user_id = update.effective_user.id
   fields = context.user_data[request_type]
@@ -35,6 +36,7 @@ async def complete_request(
 
     await update.message.reply_text(
       f"{request_type} request submitted; reference no. is {request.id}.\n"
+      f"{additional_completion_text}\n"
       "If you wish to carry out more actions, send /help for a list of commands."
     )
 

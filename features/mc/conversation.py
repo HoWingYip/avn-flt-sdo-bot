@@ -53,7 +53,12 @@ async def mc_additional_info(update: Update, context: ContextTypes.DEFAULT_TYPE)
   return MCConversationState.CONFIRM
 
 async def mc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  await complete_request(request_type=REQUEST_TYPE, update=update, context=context)
+  await complete_request(
+    request_type=REQUEST_TYPE,
+    update=update,
+    context=context,
+    additional_completion_text="Do remember to update the movement charts as well."
+  )
   
   context.user_data["in_conversation"] = False
   return ConversationHandler.END
