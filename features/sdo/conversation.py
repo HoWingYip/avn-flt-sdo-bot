@@ -145,6 +145,9 @@ async def hoto_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def add_handlers(app: Application):
   app.add_handler(CommandHandler(command="sdo", callback=sdo))
   app.add_handler(ConversationHandler(
+    # allows the ConversationHandler to listen to more than one user's commands at once
+    per_user=False,
+
     entry_points=[
       CommandHandler(
         command="hoto",
