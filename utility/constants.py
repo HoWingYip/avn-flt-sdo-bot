@@ -40,7 +40,8 @@ FIELD_NAME_MAPPINGS = {
   },
   "MC": {
     "rank_name": "Rank/name",
-    "duration": "Duration",
+    "start_date": "Start date",
+    "end_date": "End date",
     "reason": "Reason",
     "additional_info": "Additional info",
   }
@@ -75,7 +76,7 @@ RSOConversationState = Enum("RSOConversationState", [
 
 MCConversationState = Enum("MCConversationState", [
   "RANK_NAME",
-  "DURATION",
+  "PERIOD",
   "REASON",
   "INFO",
   "CONFIRM",

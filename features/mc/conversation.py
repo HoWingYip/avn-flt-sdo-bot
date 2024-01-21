@@ -4,6 +4,7 @@ from telegram.ext import filters, Application, CommandHandler, ContextTypes, Con
 from features.shared import complete_request
 
 from utility.constants import MCConversationState, PRIVATE_MESSAGE_FILTER
+from utility.validate_datetime_string import validate_date_string
 from utility.summarize_request import summarize_request
 
 REQUEST_TYPE = "MC"
@@ -25,11 +26,27 @@ async def mc_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def mc_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data[REQUEST_TYPE]["rank_name"] = update.message.text
 
-  await update.message.reply_text("What is the duration of your MC?")
-  return MCConversationState.DURATION
+  await update.message.reply_text("Over what time period will you be on MC? (E.g. 010125-020125)")
+  return MCConversationState.PERIOD
 
-async def mc_duration(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  context.user_data[REQUEST_TYPE]["duration"] = update.message.text
+async def mc_period(update: Update, context: ContextTypes.DEFAULT_TYPE):
+  try:
+    start_date_text, end_date_text = update.message.text.split("-")
+    start_date_obj = validate_date_string(start_date_text, "%d%m%y")
+    end_date_obj = validate_date_string(end_date_text, "%d%m%y")
+    
+    assert start_date_obj <= end_date_obj, "Start date cannot be before end date"
+  except Exception as err:
+    print("Error when validating dates:", err)
+    await update.message.reply_text(
+      "Invalid date(s) or format. Example of expected format: 010125-020125\n"
+      "Note that start date cannot be before end date, and both dates cannot be before today.\n"
+      "Please try again."
+    )
+    return MCConversationState.PERIOD
+  
+  context.user_data[REQUEST_TYPE]["start_date"] = start_date_obj
+  context.user_data[REQUEST_TYPE]["end_date"] = end_date_obj
 
   await update.message.reply_text("What is the reason for your MC?")
   return MCConversationState.REASON
@@ -86,8 +103,8 @@ def add_handlers(app: Application):
       MCConversationState.RANK_NAME: [
         MessageHandler(callback=mc_rank_name, filters=PRIVATE_MESSAGE_FILTER),
       ],
-      MCConversationState.DURATION: [
-        MessageHandler(callback=mc_duration, filters=PRIVATE_MESSAGE_FILTER),
+      MCConversationState.PERIOD: [
+        MessageHandler(callback=mc_period, filters=PRIVATE_MESSAGE_FILTER),
       ],
       MCConversationState.REASON: [
         MessageHandler(callback=mc_reason, filters=PRIVATE_MESSAGE_FILTER),

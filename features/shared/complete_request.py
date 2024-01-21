@@ -1,6 +1,6 @@
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, date, timezone, timedelta
 
 from utility.summarize_request import summarize_request
 from utility.callback_data import make_callback_data
@@ -25,15 +25,16 @@ async def complete_request(
   with DBSession(engine, expire_on_commit=False) as db_session:
     request_info = {"type": request_type, **fields}
     
-    if "time" in request_info:
-      request_info["time"] = request_info["time"].timestamp()
-    if "date" in request_info:
-      request_info["date"] = datetime(
-        year=request_info["date"].year,
-        month=request_info["date"].month,
-        day=request_info["date"].day,
-        tzinfo=timezone(timedelta(hours=8)),
-      ).timestamp()
+    for field in request_info:
+      if isinstance(request_info[field], datetime):
+        request_info[field] = request_info[field].timestamp()
+      elif isinstance(request_info[field], date):
+        request_info[field] = datetime(
+          year=request_info[field].year,
+          month=request_info[field].month,
+          day=request_info[field].day,
+          tzinfo=timezone(timedelta(hours=8)),
+        ).timestamp()
 
     request = Request(
       sender_id=user_id,
