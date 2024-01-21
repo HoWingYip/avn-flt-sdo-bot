@@ -27,10 +27,8 @@ async def ippt_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data[REQUEST_TYPE]["rank_name"] = update.message.text
 
   await update.message.reply_text(
-    f"Rank/name is {update.message.text}.\n"
     "What are the ranks and full names of all IPPT participants you are registering for? Enter one name per line."
   )
-
   return IPPTConversationState.PARTICIPANTS
 
 async def ippt_participants(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -39,14 +37,12 @@ async def ippt_participants(update: Update, context: ContextTypes.DEFAULT_TYPE):
   if len(names) == 0:
     await update.message.reply_text("No names were entered. Please try again.")
     return IPPTConversationState.PARTICIPANTS
-  
-  await update.message.reply_text(
-    f"You have entered {len(names)} name{'s' if len(names) > 1 else ''}:\n" +
-    "".join(f"{i+1}. {name}\n" for i, name in enumerate(names)) +
-    "\nAre there any further considerations you would like us to cater for? If not, simply send 'Nil'."
-  )
 
   context.user_data[REQUEST_TYPE]["participants"] = names
+  
+  await update.message.reply_text(
+    "Are there any further considerations you would like us to cater for? If not, simply send 'Nil'."
+  )
   return IPPTConversationState.INFO
 
 async def ippt_additional_info(update: Update, context: ContextTypes.DEFAULT_TYPE):

@@ -27,50 +27,40 @@ async def bcp_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data[REQUEST_TYPE]["rank_name"] = update.message.text
 
   await update.message.reply_text(
-    f"Rank/name is {update.message.text}.\n"
     "What is the location of your BCP clearance request?"
   )
-
   return BCPConversationState.LOCATION
 
 async def bcp_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data[REQUEST_TYPE]["location"] = update.message.text
 
   await update.message.reply_text(
-    f"BCP location is {update.message.text}.\n"
     "What is/are the course(s) under which you are requesting clearance?"
   )
-
   return BCPConversationState.COURSE
 
 async def bcp_course(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data[REQUEST_TYPE]["course"] = update.message.text
 
   await update.message.reply_text(
-    f"Course(s) is/are {update.message.text}.\n"
     "What is your vehicle plate number? If not applicable, simply send 'Nil'."
   )
-
   return BCPConversationState.VEHICLE_NUMBER
 
 async def bcp_vehicle_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data[REQUEST_TYPE]["vehicle_number"] = update.message.text
 
   await update.message.reply_text(
-    f"Vehicle plate number is {update.message.text}.\n"
     "What is the purpose of your BCP clearance request?"
   )
-
   return BCPConversationState.PURPOSE
 
 async def bcp_purpose(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data[REQUEST_TYPE]["purpose"] = update.message.text
 
   await update.message.reply_text(
-    f"BCP purpose is {update.message.text}.\n"
     "Do you have any additional information or queries? If not, simply send 'Nil'."
   )
-
   return BCPConversationState.INFO
 
 async def bcp_additional_info(update: Update, context: ContextTypes.DEFAULT_TYPE):

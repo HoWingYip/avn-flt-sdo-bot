@@ -26,21 +26,13 @@ async def rso_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def rso_rank_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data[REQUEST_TYPE]["rank_name"] = update.message.text
 
-  await update.message.reply_text(
-    f"Rank/name is {update.message.text}.\n" # TODO: remove after deployment
-    "Where will you RSO? (E.g. Ang Mo Kio Polyclinic)"
-  )
-
+  await update.message.reply_text("Where will you RSO? (E.g. Ang Mo Kio Polyclinic)")
   return RSOConversationState.LOCATION
 
 async def rso_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data[REQUEST_TYPE]["location"] = update.message.text
 
-  await update.message.reply_text(
-    f"RSO location is {update.message.text}.\n"
-    "When will you RSO? (E.g. 010125 0800H)\n"
-  )
-
+  await update.message.reply_text("When will you RSO? (E.g. 010125 0800H)\n")
   return RSOConversationState.DATE_TIME
 
 async def rso_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):  
@@ -56,21 +48,15 @@ async def rso_date_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return RSOConversationState.DATE_TIME
   
-  await update.message.reply_text(
-    f"Date is {datetime_obj.strftime('%d%m%y')}, time is {datetime_obj.strftime('%H%MH')}.\n"
-    "What is your reason for reporting sick outside?"
-  )
-
+  await update.message.reply_text("What is your reason for reporting sick outside?")
   return RSOConversationState.REASON
   
 async def rso_reason(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data[REQUEST_TYPE]["reason"] = update.message.text
 
   await update.message.reply_text(
-    f"RSO reason is {update.message.text}.\n"
     "Do you have any additional information or queries? If not, simply send 'Nil'."
   )
-
   return RSOConversationState.INFO
 
 async def rso_additional_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
