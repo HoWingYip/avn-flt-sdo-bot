@@ -35,11 +35,18 @@ FIELD_NAME_MAPPINGS = {
     "participants": "Participants",
     "additional_info": "Additional considerations",
   },
+  "MC": {
+    "rank_name": "Rank/name",
+    "duration": "Duration",
+    "reason": "Reason",
+    "additional_info": "Additional info",
+  }
 }
 
 REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL = {
   "BCP clearance": True,
   "RSO": False,
+  "MC": False,
   "IPPT booking": True,
 }
 
@@ -57,6 +64,14 @@ RSOConversationState = Enum("RSOConversationState", [
   "RANK_NAME",
   "LOCATION",
   "DATE_TIME",
+  "REASON",
+  "INFO",
+  "CONFIRM",
+])
+
+MCConversationState = Enum("MCConversationState", [
+  "RANK_NAME",
+  "DURATION",
   "REASON",
   "INFO",
   "CONFIRM",

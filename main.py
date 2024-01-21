@@ -14,7 +14,12 @@ logging.basicConfig(
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
   await update.message.reply_text(
-    f"Good day! This is the AVN FLT SDO bot. How may I help you?\n\n{HELP_MESSAGE}"
+    "Good day! This is the AVN FLT SDO bot.\n"
+    "The purpose of this bot is to handle requests from trainees in AVN FLT, "
+    "and assist the SDO with completing tasks more efficiently.\n"
+    "This bot is currently in its first trial phase, which will last from 22/1 to 26/1. "
+    "We seek your understanding as we work to resolve possible teething issues. Thank you!\n\n" +
+    HELP_MESSAGE
   )
 
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -31,8 +36,9 @@ if __name__ == "__main__":
 
   features.shared.init(app)
   features.bcp.init(app)
-  features.ippt.init(app)
   features.rso.init(app)
+  features.mc.init(app)
+  features.ippt.init(app)
   features.sdo.init(app)
   features.send_message_to_requestor.init(app)
 
