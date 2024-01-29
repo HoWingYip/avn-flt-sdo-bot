@@ -40,7 +40,7 @@ async def acknowledge(update: Update, context: CallbackContext):
         reply_markup=InlineKeyboardMarkup((
           (
             InlineKeyboardButton(
-              text="Notify requestor that approving party has been informed",
+              text="Approving party informed",
               callback_data=make_callback_data(RequestCallbackType.APPROVER_NOTIFIED, (request.id,)),
             ),
           ),
