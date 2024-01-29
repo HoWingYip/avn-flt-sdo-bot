@@ -56,7 +56,7 @@ async def hoto_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return ConversationHandler.END
     
-  if len(context.args) == 0 or \
+  if not context.args or \
      not all(len(username) > 1 and username[0] == "@" for username in context.args):
     await update.message.reply_text(
       "To hand over duty, send /hoto followed by the usernames "
@@ -96,7 +96,7 @@ async def hoto_acknowledge(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return HOTOConversationState.IN_PROGRESS
   
-  if len(context.args) == 0:
+  if not context.args:
     await update.message.reply_text(
       "To acknowledge the HOTO request, send /hoto followed by your rank and name. "
       "Additional details like shift timing may be included.\n"
@@ -109,7 +109,7 @@ async def hoto_acknowledge(update: Update, context: ContextTypes.DEFAULT_TYPE):
   hoto_data["acknowledged"][update.effective_user.id] = \
     update.message.text.split(maxsplit=1)[1]
 
-  if len(hoto_data["not_acknowledged"]) > 0:
+  if not hoto_data["not_acknowledged"]:
     await update.message.reply_text(
       "Acknowledgement received.\n\n"
       f"{len(hoto_data['not_acknowledged'])} incoming SDO(s) have yet to acknowledge:\n" +

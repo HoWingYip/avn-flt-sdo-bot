@@ -16,7 +16,7 @@ PRIVATE_MESSAGE_FILTER = filters.TEXT & (~filters.COMMAND) & filters.ChatType.PR
 
 FIELD_NAME_MAPPINGS = {
   # Illegal names are: "in_conversation"
-  "BCP clearance": {
+  "BCP clearance request": {
     "rank_name": "Rank/name",
     "date": "Date",
     "location": "Location",
@@ -25,33 +25,45 @@ FIELD_NAME_MAPPINGS = {
     "purpose": "Purpose",
     "additional_info": "Additional info",
   },
-  "RSO": {
+  "RSO notification": {
     "rank_name": "Rank/name",
     "location": "RSO location",
     "time": "RSO date and time",
     "reason": "RSO reason",
     "additional_info": "Additional info",
   },
-  "IPPT booking": {
+  "IPPT booking request": {
     "rank_name": "Rank/name",
     "date": "Date",
     "participants": "Participants",
     "additional_info": "Additional considerations",
   },
-  "MC": {
+  "MC notification": {
     "rank_name": "Rank/name",
     "start_date": "Start date",
     "end_date": "End date",
     "reason": "Reason",
     "additional_info": "Additional info",
-  }
+  },
+  "Enquiry": {
+    "enquiry": "Enquiry",
+  },
+}
+
+REQUEST_TYPE_REQUIRES_APPROVAL = {
+  "BCP clearance request": True,
+  "RSO notification": True,
+  "MC notification": True,
+  "IPPT booking request": True,
+  "Enquiry": False,
 }
 
 REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL = {
-  "BCP clearance": True,
-  "RSO": False,
-  "MC": False,
-  "IPPT booking": True,
+  "BCP clearance request": True,
+  "RSO notification": False,
+  "MC notification": False,
+  "IPPT booking request": True,
+  "Enquiry": False,
 }
 
 BCPConversationState = Enum("BCPConversationState", [
@@ -88,6 +100,10 @@ IPPTConversationState = Enum("IPPTConversationState", [
   "PARTICIPANTS",
   "INFO",
   "CONFIRM",
+])
+
+EnquiryConversationState = Enum("EnquiryConversationState", [
+  "ENQUIRY_RECEIVED",
 ])
 
 HOTOConversationState = Enum("HOTOConversationState", [

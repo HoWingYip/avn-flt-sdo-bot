@@ -7,7 +7,7 @@ from utility.constants import BCPConversationState, PRIVATE_MESSAGE_FILTER
 from utility.validate_datetime_string import validate_date_string
 from utility.summarize_request import summarize_request
 
-REQUEST_TYPE = "BCP clearance"
+REQUEST_TYPE = "BCP clearance request"
 
 async def bcp_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
   if context.user_data.get("in_conversation"):
@@ -106,7 +106,7 @@ async def bcp_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
   # not necessary to delete context.user_data[REQUEST_TYPE]
   # because it will only be read after all fields are filled out
   await update.message.reply_text(
-    f"{REQUEST_TYPE} request cancelled.\n"
+    f"{REQUEST_TYPE} cancelled.\n"
     "Send /help for a list of commands."
   )
   

@@ -7,7 +7,7 @@ from utility.summarize_request import summarize_request
 
 from features.shared import complete_request
 
-REQUEST_TYPE = "IPPT booking"
+REQUEST_TYPE = "IPPT booking request"
 
 async def ippt_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
   if context.user_data.get("in_conversation"):
@@ -52,7 +52,7 @@ async def ippt_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def ippt_participants(update: Update, context: ContextTypes.DEFAULT_TYPE):
   names = [name.strip() for name in update.message.text.split("\n") if name.strip()]
   
-  if len(names) == 0:
+  if not names:
     await update.message.reply_text("No names were entered. Please try again.")
     return IPPTConversationState.PARTICIPANTS
 
@@ -81,7 +81,7 @@ async def ippt_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def ippt_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
   await update.message.reply_text(
-    f"{REQUEST_TYPE} request cancelled.\n"
+    f"{REQUEST_TYPE} cancelled.\n"
     "Send /help for a list of commands."
   )
   

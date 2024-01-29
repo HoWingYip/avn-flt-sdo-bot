@@ -7,7 +7,7 @@ from utility.constants import RSOConversationState, PRIVATE_MESSAGE_FILTER
 from utility.validate_datetime_string import validate_datetime_string
 from utility.summarize_request import summarize_request
 
-REQUEST_TYPE = "RSO"
+REQUEST_TYPE = "RSO notification"
 
 async def rso_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
   if context.user_data.get("in_conversation"):
@@ -17,7 +17,7 @@ async def rso_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["in_conversation"] = True
 
   await update.message.reply_text(
-    "You are now starting a Report Sick Outside (RSO) request. To cancel, send /cancel at any time.\n"
+    "You are now starting a Report Sick Outside (RSO) notification. To cancel, send /cancel at any time.\n"
     "What is your rank and full name? (E.g. PTE Jay Chou)"
   )
 
@@ -83,7 +83,7 @@ async def rso_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def rso_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
   await update.message.reply_text(
-    f"{REQUEST_TYPE} request cancelled.\n"
+    f"{REQUEST_TYPE} cancelled.\n"
     "Send /help for a list of commands."
   )
   

@@ -40,6 +40,7 @@ if __name__ == "__main__":
   features.mc.init(app)
   features.ippt.init(app)
   features.sdo.init(app)
+  features.enquiry.init(app)
   features.send_message_to_requestor.init(app)
 
   # internal stuff

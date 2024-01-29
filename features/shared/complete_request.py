@@ -4,7 +4,7 @@ from datetime import datetime, date, timezone, timedelta
 
 from utility.summarize_request import summarize_request
 from utility.callback_data import make_callback_data
-from utility.constants import RequestCallbackType, REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL
+from utility.constants import RequestCallbackType, REQUEST_TYPE_REQUIRES_APPROVAL, REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
@@ -45,7 +45,7 @@ async def complete_request(
     db_session.commit()
 
     await update.message.reply_text(
-      f"{request_type} request submitted; reference no. is {request.id}.\n"
+      f"{request_type} submitted; reference no. is {request.id}.\n"
       f"{additional_completion_text}\n"
       "If you wish to carry out more actions, send /help for a list of commands."
     )
@@ -53,10 +53,10 @@ async def complete_request(
     for group_id in db_session.scalars(select(ChatGroup.id)):
       sent_message = await context.bot.send_message(
         group_id,
-        text=f"New {request_type} request from @{update.effective_user.username}:\n"
+        text=f"New {request_type} from @{update.effective_user.username}:\n"
              f"{summarize_request(request_type, fields)}\n"
              f"<b>Reference no.: {request.id}</b>\n\n"
-             "To send additional information to this requestor via the bot, use:\n"
+             "To send additional information to this user via the bot, use:\n"
              f"<code>/pm {request.id} [text to send]</code>.",
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup((
@@ -71,7 +71,7 @@ async def complete_request(
               )
             ),
           ),
-        )),
+        )) if REQUEST_TYPE_REQUIRES_APPROVAL[request_type] else None,
       )
 
       db_message = RequestNotification(

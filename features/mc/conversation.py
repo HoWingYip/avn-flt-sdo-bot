@@ -7,7 +7,7 @@ from utility.constants import MCConversationState, PRIVATE_MESSAGE_FILTER
 from utility.validate_datetime_string import validate_date_string
 from utility.summarize_request import summarize_request
 
-REQUEST_TYPE = "MC"
+REQUEST_TYPE = "MC notification"
 
 async def mc_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
   if context.user_data.get("in_conversation"):
@@ -17,7 +17,7 @@ async def mc_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["in_conversation"] = True
 
   await update.message.reply_text(
-    "You are now starting a Medical Certificate (MC) request. To cancel, send /cancel at any time.\n"
+    "You are now starting a Medical Certificate (MC) notification. To cancel, send /cancel at any time.\n"
     "What is your rank and full name? (E.g. PTE Jay Chou)"
   )
 
@@ -82,7 +82,7 @@ async def mc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def mc_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
   await update.message.reply_text(
-    f"{REQUEST_TYPE} request cancelled.\n"
+    f"{REQUEST_TYPE} cancelled.\n"
     "Send /help for a list of commands."
   )
   
