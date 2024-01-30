@@ -6,7 +6,7 @@ HELP_MESSAGE = cleandoc("""
   List of commands:
   /bcp - Request Base Command Post Clearance
   /ippt - Request to book an IPPT session
-  /rso - Inform the SDOs that you will report sick outside
+  /reportsick - Inform the SDOs that you will report sick (inside/outside)
   /mc - Inform the SDOs of your medical certificate
   /sdo - List the current Student Duty Officers
   /enquiry - Send an enquiry to the SDOs
@@ -26,11 +26,11 @@ FIELD_NAME_MAPPINGS = {
     "purpose": "Purpose",
     "additional_info": "Additional info",
   },
-  "RSO notification": {
+  "report sick notification": {
     "rank_name": "Rank/name",
-    "location": "RSO location",
-    "time": "RSO date and time",
-    "reason": "RSO reason",
+    "location": "Report sick location",
+    "time": "Date and time of reporting sick",
+    "reason": "Reason for reporting sick",
     "additional_info": "Additional info",
   },
   "IPPT booking request": {
@@ -53,7 +53,7 @@ FIELD_NAME_MAPPINGS = {
 
 REQUEST_TYPE_REQUIRES_APPROVAL = {
   "BCP clearance request": True,
-  "RSO notification": True,
+  "report sick notification": True,
   "MC notification": True,
   "IPPT booking request": True,
   "Enquiry": False,
@@ -61,7 +61,7 @@ REQUEST_TYPE_REQUIRES_APPROVAL = {
 
 REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL = {
   "BCP clearance request": True,
-  "RSO notification": False,
+  "report sick notification": False,
   "MC notification": False,
   "IPPT booking request": True,
   "Enquiry": False,
@@ -78,7 +78,7 @@ BCPConversationState = Enum("BCPConversationState", [
   "CONFIRM",
 ])
 
-RSOConversationState = Enum("RSOConversationState", [
+ReportSickConversationState = Enum("ReportSickConversationState", [
   "RANK_NAME",
   "LOCATION",
   "DATE_TIME",
@@ -115,7 +115,7 @@ HOTOConversationState = Enum("HOTOConversationState", [
 # parsers split by that character.
 # Enum members containing "#" are inaccessible through dot notation but this is
 # just in case someone attempts to pull something stupid using getattr().
-RequestCallbackType = Enum("RSOCallbackType", [
+RequestCallbackType = Enum("RequestCallbackType", [
   "ACKNOWLEDGE",
   "APPROVER_NOTIFIED",
   "APPROVE",

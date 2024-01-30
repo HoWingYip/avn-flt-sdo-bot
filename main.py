@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
   features.shared.init(app)
   features.bcp.init(app)
-  features.rso.init(app)
+  features.report_sick.init(app)
   features.mc.init(app)
   features.ippt.init(app)
   features.sdo.init(app)
