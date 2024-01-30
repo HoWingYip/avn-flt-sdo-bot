@@ -56,6 +56,14 @@ async def mc_reason(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data[REQUEST_TYPE]["reason"] = update.message.text
 
   await update.message.reply_text(
+    "What course are you enrolled in? If you are not currently enrolled in a course, simply send 'Nil'."
+  )
+  return MCConversationState.COURSE
+
+async def mc_course(update: Update, context: ContextTypes.DEFAULT_TYPE):
+  context.user_data[REQUEST_TYPE]["course"] = update.message.text
+
+  await update.message.reply_text(
     "Do you have any additional information or queries? If not, simply send 'Nil'."
   )
   return MCConversationState.INFO
@@ -109,6 +117,9 @@ def add_handlers(app: Application):
       ],
       MCConversationState.REASON: [
         MessageHandler(callback=mc_reason, filters=PRIVATE_MESSAGE_FILTER),
+      ],
+      MCConversationState.COURSE: [
+        MessageHandler(callback=mc_course, filters=PRIVATE_MESSAGE_FILTER),
       ],
       MCConversationState.INFO: [
         MessageHandler(callback=mc_additional_info, filters=PRIVATE_MESSAGE_FILTER),

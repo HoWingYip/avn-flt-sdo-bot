@@ -31,6 +31,7 @@ FIELD_NAME_MAPPINGS = {
     "location": "Report sick location",
     "time": "Date and time of reporting sick",
     "reason": "Reason for reporting sick",
+    "course": "Courses enrolled in",
     "additional_info": "Additional info",
   },
   "IPPT booking request": {
@@ -44,6 +45,7 @@ FIELD_NAME_MAPPINGS = {
     "start_date": "Start date",
     "end_date": "End date",
     "reason": "Reason",
+    "course": "Courses enrolled in",
     "additional_info": "Additional info",
   },
   "enquiry": {
@@ -83,6 +85,7 @@ ReportSickConversationState = Enum("ReportSickConversationState", [
   "LOCATION",
   "DATE_TIME",
   "REASON",
+  "COURSE",
   "INFO",
   "CONFIRM",
 ])
@@ -91,6 +94,7 @@ MCConversationState = Enum("MCConversationState", [
   "RANK_NAME",
   "PERIOD",
   "REASON",
+  "COURSE",
   "INFO",
   "CONFIRM",
 ])
