@@ -148,18 +148,17 @@ async def undo_approve(update: Update, context: CallbackContext):
 
   with DBSession(engine) as db_session:
     request = db_session.scalar(select(Request).where(Request.id == request_id))
-    if request is None:
-      logger.warning(f"undo_approve callback received nonexistent request ID {request_id}.")
-      await query.answer()
-      return
-
     try:
+      assert request is not None, \
+        f"undo_approve callback received nonexistent request ID {request_id}."
       assert request.status == RequestStatus.APPROVED, \
         f"Tried to undo approval of request {request_id} but it was not approved"
       assert request.verdict_notification is not None, \
         f"Tried to undo approval of request {request_id} but verdict_notification was null"
     except AssertionError as err:
       logger.error(err)
+      await query.answer()
+      return
 
     await context.bot.delete_message(
       chat_id=request.verdict_notification.chat_id,
@@ -250,18 +249,17 @@ async def undo_reject(update: Update, context: CallbackContext):
 
   with DBSession(engine) as db_session:
     request = db_session.scalar(select(Request).where(Request.id == request_id))
-    if request is None:
-      logger.warning(f"undo_reject callback received nonexistent request ID {request_id}.")
-      await query.answer()
-      return
-
     try:
+      assert request is not None, \
+        f"undo_reject callback received nonexistent request ID {request_id}."
       assert request.status == RequestStatus.REJECTED, \
         f"Tried to undo rejection of request {request_id} but it was not rejected"
       assert request.verdict_notification is not None, \
         f"Tried to undo rejection of request {request_id} but verdict_notification was null"
     except AssertionError as err:
       logger.error(err)
+      await query.answer()
+      return
 
     await context.bot.delete_message(
       chat_id=request.verdict_notification.chat_id,
