@@ -46,7 +46,7 @@ FIELD_NAME_MAPPINGS = {
     "reason": "Reason",
     "additional_info": "Additional info",
   },
-  "Enquiry": {
+  "enquiry": {
     "enquiry": "Enquiry",
   },
 }
@@ -56,7 +56,7 @@ REQUEST_TYPE_REQUIRES_APPROVAL = {
   "report sick notification": True,
   "MC notification": True,
   "IPPT booking request": True,
-  "Enquiry": False,
+  "enquiry": False,
 }
 
 REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL = {
@@ -64,7 +64,7 @@ REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL = {
   "report sick notification": False,
   "MC notification": False,
   "IPPT booking request": True,
-  "Enquiry": False,
+  "enquiry": False,
 }
 
 BCPConversationState = Enum("BCPConversationState", [

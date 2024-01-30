@@ -6,6 +6,7 @@ from features.shared import complete_request
 from utility.constants import BCPConversationState, PRIVATE_MESSAGE_FILTER
 from utility.validate_datetime_string import validate_date_string
 from utility.summarize_request import summarize_request
+from utility.string_casing import uppercase_first_letter
 
 REQUEST_TYPE = "BCP clearance request"
 
@@ -83,7 +84,7 @@ async def bcp_additional_info(update: Update, context: ContextTypes.DEFAULT_TYPE
   context.user_data[REQUEST_TYPE]["additional_info"] = update.message.text
 
   await update.message.reply_text(
-    f"{REQUEST_TYPE} request summary:\n"
+    f"{uppercase_first_letter(REQUEST_TYPE)} request summary:\n"
     f"{summarize_request(request_type=REQUEST_TYPE, fields=context.user_data[REQUEST_TYPE])}\n\n"
     "To confirm the above information and submit the request, send /confirm. To cancel, send /cancel."
   )
@@ -106,7 +107,7 @@ async def bcp_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
   # not necessary to delete context.user_data[REQUEST_TYPE]
   # because it will only be read after all fields are filled out
   await update.message.reply_text(
-    f"{REQUEST_TYPE} cancelled.\n"
+    f"{uppercase_first_letter(REQUEST_TYPE)} cancelled.\n"
     "Send /help for a list of commands."
   )
   

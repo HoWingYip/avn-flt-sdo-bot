@@ -4,6 +4,7 @@ from telegram.ext import Application, ContextTypes, CommandHandler, Conversation
 from utility.constants import IPPTConversationState, PRIVATE_MESSAGE_FILTER
 from utility.validate_datetime_string import validate_date_string
 from utility.summarize_request import summarize_request
+from utility.string_casing import uppercase_first_letter
 
 from features.shared import complete_request
 
@@ -67,7 +68,7 @@ async def ippt_additional_info(update: Update, context: ContextTypes.DEFAULT_TYP
   context.user_data[REQUEST_TYPE]["additional_info"] = update.message.text
 
   await update.message.reply_text(
-    f"{REQUEST_TYPE} request summary:\n"
+    f"{uppercase_first_letter(REQUEST_TYPE)} request summary:\n"
     f"{summarize_request(request_type=REQUEST_TYPE, fields=context.user_data[REQUEST_TYPE])}\n"
     "To confirm the above information and submit the request, send /confirm. To cancel, send /cancel."
   )
@@ -81,7 +82,7 @@ async def ippt_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def ippt_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
   await update.message.reply_text(
-    f"{REQUEST_TYPE} cancelled.\n"
+    f"{uppercase_first_letter(REQUEST_TYPE)} cancelled.\n"
     "Send /help for a list of commands."
   )
   

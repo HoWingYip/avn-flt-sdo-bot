@@ -5,7 +5,7 @@ from features.shared import complete_request
 
 from utility.constants import EnquiryConversationState, PRIVATE_MESSAGE_FILTER
 
-REQUEST_TYPE = "Enquiry"
+REQUEST_TYPE = "enquiry"
 
 async def enquiry(update: Update, context: ContextTypes.DEFAULT_TYPE):
   if context.user_data.get("in_conversation"):

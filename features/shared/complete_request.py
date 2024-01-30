@@ -4,6 +4,7 @@ from datetime import datetime, date, timezone, timedelta
 
 from utility.summarize_request import summarize_request
 from utility.callback_data import make_callback_data
+from utility.string_casing import uppercase_first_letter
 from utility.constants import RequestCallbackType, REQUEST_TYPE_REQUIRES_APPROVAL, REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL
 
 from sqlalchemy import select
@@ -45,7 +46,7 @@ async def complete_request(
     db_session.commit()
 
     await update.message.reply_text(
-      f"{request_type} submitted; reference no. is {request.id}.\n"
+      f"{uppercase_first_letter(request_type)} submitted; reference no. is {request.id}.\n"
       f"{additional_completion_text}\n"
       "If you wish to carry out more actions, send /help for a list of commands."
     )

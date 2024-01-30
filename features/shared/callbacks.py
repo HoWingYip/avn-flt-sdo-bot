@@ -2,8 +2,9 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CallbackContext, CallbackQueryHandler
 import logging
 
-from utility.constants import RequestCallbackType, RequestStatus, REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL
 from utility.callback_data import match_callback_type, make_callback_data, parse_callback_data
+from utility.string_casing import uppercase_first_letter
+from utility.constants import RequestCallbackType, RequestStatus, REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL
 
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy import select
@@ -28,7 +29,7 @@ async def acknowledge(update: Update, context: CallbackContext):
 
     await context.bot.send_message(
       chat_id=request.sender_id,
-      text=f"Your {request.info['type']} request (ref. {request_id}) has been acknowledged by the SDO. "
+      text=f"Your {request.info['type']} (ref. {request_id}) has been acknowledged by the SDO. "
            "You will be notified when the relevant approving party has been informed."
     )
 
@@ -71,7 +72,7 @@ async def approver_notified(update: Update, context: CallbackContext):
 
     await context.bot.send_message(
       chat_id=request.sender_id,
-      text=f"The relevant approving party has been informed of your {request.info['type']} request (ref. {request_id}). "
+      text=f"The relevant approving party has been informed of your {request.info['type']} (ref. {request_id}). "
            "You will be notified when it is approved or rejected."
     )
 
@@ -112,7 +113,7 @@ async def approve(update: Update, context: CallbackContext):
     
     verdict_notification = await context.bot.send_message(
       chat_id=request.sender_id,
-      text=f"Your {request.info['type']} request (ref. {request_id}) has been {approval_type}." +
+      text=f"Your {request.info['type']} (ref. {request_id}) has been {approval_type}." +
            ('' if requires_independent_approval else ' (No approval is necessary.)'),
     )
 
@@ -132,7 +133,7 @@ async def approve(update: Update, context: CallbackContext):
         reply_markup=InlineKeyboardMarkup((
           (
             InlineKeyboardButton(
-              text=f"{approval_type[0].upper()}{approval_type[1:]} by @{update.effective_user.username}. Click to undo.",
+              text=f"{uppercase_first_letter(approval_type)} by @{update.effective_user.username}. Click to undo.",
               callback_data=make_callback_data(RequestCallbackType.UNDO_APPROVE, (request.id,))
             ),
           ),
@@ -215,7 +216,7 @@ async def reject(update: Update, context: CallbackContext):
 
     verdict_notification = await context.bot.send_message(
       chat_id=request.sender_id,
-      text=f"Your {request.info['type']} request (ref. {request_id}) has been rejected."
+      text=f"Your {request.info['type']} (ref. {request_id}) has been rejected."
     )
 
     request.status = RequestStatus.REJECTED
