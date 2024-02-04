@@ -49,13 +49,6 @@ async def hoto_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
   if context.chat_data.get("in_conversation"):
     return ConversationHandler.END
 
-  current_sdo_ids = [row.sdo_id for row in get_current_sdos()]
-  if current_sdo_ids and update.effective_user.id not in current_sdo_ids:
-    await update.message.reply_text(
-      "You are not a current SDO. Only current SDOs may initiate a HOTO."
-    )
-    return ConversationHandler.END
-    
   if not context.args or \
      not all(len(username) > 1 and username[0] == "@" for username in context.args):
     await update.message.reply_text(
@@ -109,7 +102,7 @@ async def hoto_acknowledge(update: Update, context: ContextTypes.DEFAULT_TYPE):
   hoto_data["acknowledged"][update.effective_user.id] = \
     update.message.text.split(maxsplit=1)[1]
 
-  if not hoto_data["not_acknowledged"]:
+  if hoto_data["not_acknowledged"]:
     await update.message.reply_text(
       "Acknowledgement received.\n\n"
       f"{len(hoto_data['not_acknowledged'])} incoming SDO(s) have yet to acknowledge:\n" +
