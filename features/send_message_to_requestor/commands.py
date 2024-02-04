@@ -14,7 +14,7 @@ async def message_requestor(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
       text="Syntax error.\n"
            "To send additional information to a requestor via the bot, use:\n"
-           "<code>/pm [request reference no.] [text to send]</code>.",
+           "<code>/pm [request reference no.] [text to send]</code>",
       parse_mode="HTML",
     )
     return

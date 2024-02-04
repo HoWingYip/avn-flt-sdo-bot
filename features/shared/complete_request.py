@@ -17,9 +17,6 @@ async def complete_request(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
     additional_completion_text: str = "",
-    # TODO: migrate REQUEST_TYPE_REQUIRES_APPROVAL and 
-    # REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL options to here
-    # (why did I even hardcode them for specific request types anyway?)
 ):
   user_id = update.effective_user.id
   fields = context.user_data[request_type]
@@ -40,11 +37,7 @@ async def complete_request(
           tzinfo=timezone(timedelta(hours=8)),
         ).timestamp()
 
-    request = Request(
-      sender_id=user_id,
-      info=request_info,
-    )
-
+    request = Request(sender_id=user_id, info=request_info)
     db_session.add(request)
     db_session.commit()
 
@@ -55,13 +48,21 @@ async def complete_request(
     )
 
     for group_id in db_session.scalars(select(ChatGroup.id)):
+      sdo_notification_text = \
+        f"New {request_type} from @{update.effective_user.username}:\n" + \
+        f"{summarize_request(request_type, fields)}\n" + \
+        f"<b>Reference no.: {request.id}</b>\n\n" + \
+        "To send additional information to this user via the bot, use:\n" + \
+        f"<code>/pm {request.id} [text to send]</code>\n"
+      
+      if request_type == "enquiry":
+        sdo_notification_text += \
+          "To resolve this enquiry, use:\n" + \
+          f"<code>/resolve {request.id}</code>\n"
+
       sent_message = await context.bot.send_message(
         group_id,
-        text=f"New {request_type} from @{update.effective_user.username}:\n"
-             f"{summarize_request(request_type, fields)}\n"
-             f"<b>Reference no.: {request.id}</b>\n\n"
-             "To send additional information to this user via the bot, use:\n"
-             f"<code>/pm {request.id} [text to send]</code>.",
+        text=sdo_notification_text,
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup((
           (

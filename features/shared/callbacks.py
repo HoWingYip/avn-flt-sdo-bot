@@ -1,3 +1,6 @@
+# TODO: migrate REQUEST_TYPE_REQUIRES_APPROVAL and 
+# REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL options to here?
+
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CallbackContext, CallbackQueryHandler
 import logging

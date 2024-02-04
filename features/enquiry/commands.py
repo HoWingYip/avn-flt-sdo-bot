@@ -7,6 +7,11 @@ from utility.summarize_request import summarize_request
 from utility.string_casing import uppercase_first_letter
 from utility.constants import EnquiryConversationState, PRIVATE_MESSAGE_FILTER
 
+from sqlalchemy import select
+from sqlalchemy.orm import Session as DBSession
+from db import engine
+from db.classes import Request
+
 REQUEST_TYPE = "enquiry"
 
 async def enquiry_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -75,6 +80,41 @@ async def enquiry_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
   context.user_data["in_conversation"] = False
   return ConversationHandler.END
 
+async def resolve_enquiry(update: Update, context: ContextTypes.DEFAULT_TYPE):
+  try:
+    request_id = int(context.args[0])
+  except:
+    await update.message.reply_text(
+      text="Syntax error.\n"
+           "To resolve an enquiry, use:\n"
+           "<code>/resolve [request reference no.]</code>",
+      parse_mode="HTML",
+    )
+    return
+  
+  with DBSession(engine) as db_session:
+    request = db_session.scalar(
+      select(Request).where(Request.id == request_id)
+    )
+
+    if not request or request.info["type"] != "enquiry":
+      await update.message.reply_text(f"No enquiry with reference no. {request_id}.")
+      return
+    
+    if "resolved" in request.info and request.info["resolved"]:
+      await update.message.reply_text(f"Enquiry already resolved.")
+      return
+    
+    request.info["resolved"] = True
+    db_session.add(request)
+    db_session.commit()
+
+    await update.message.reply_text("Enquiry marked as resolved. User has been notified.")
+    await context.bot.send_message(
+      chat_id=request.sender_id,
+      text=f"Your enquiry (ref. {request_id}) has been marked as resolved.",
+    )
+
 def add_handlers(app: Application):
   app.add_handler(ConversationHandler(
     entry_points=[
@@ -114,4 +154,10 @@ def add_handlers(app: Application):
         filters=filters.ChatType.PRIVATE,
       ),
     ],
+  ))
+
+  app.add_handler(CommandHandler(
+    command="resolve",
+    callback=resolve_enquiry,
+    filters=filters.ChatType.GROUPS,
   ))
