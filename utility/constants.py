@@ -49,7 +49,10 @@ FIELD_NAME_MAPPINGS = {
     "additional_info": "Additional info",
   },
   "enquiry": {
+    "rank_name": "Rank/name",
+    "course": "Courses enrolled in",
     "enquiry": "Enquiry",
+    "additional_info": "Additional info",
   },
 }
 
@@ -58,7 +61,7 @@ REQUEST_TYPE_REQUIRES_APPROVAL = {
   "report sick notification": True,
   "MC notification": True,
   "IPPT booking request": True,
-  "enquiry": False,
+  "enquiry": True,
 }
 
 REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL = {
@@ -108,7 +111,11 @@ IPPTConversationState = Enum("IPPTConversationState", [
 ])
 
 EnquiryConversationState = Enum("EnquiryConversationState", [
-  "ENQUIRY_RECEIVED",
+  "RANK_NAME",
+  "COURSE",
+  "ENQUIRY",
+  "INFO",
+  "CONFIRM",
 ])
 
 HOTOConversationState = Enum("HOTOConversationState", [

@@ -113,8 +113,7 @@ async def approve(update: Update, context: CallbackContext):
     
     verdict_notification = await context.bot.send_message(
       chat_id=request.sender_id,
-      text=f"Your {request.info['type']} (ref. {request_id}) has been {approval_type}." +
-           ('' if requires_independent_approval else ' (No approval is necessary.)'),
+      text=f"Your {request.info['type']} (ref. {request_id}) has been {approval_type}.",
     )
 
     request.status = RequestStatus.APPROVED

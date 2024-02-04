@@ -68,7 +68,7 @@ async def ippt_additional_info(update: Update, context: ContextTypes.DEFAULT_TYP
   context.user_data[REQUEST_TYPE]["additional_info"] = update.message.text
 
   await update.message.reply_text(
-    f"{uppercase_first_letter(REQUEST_TYPE)} request summary:\n"
+    f"{uppercase_first_letter(REQUEST_TYPE)} summary:\n"
     f"{summarize_request(request_type=REQUEST_TYPE, fields=context.user_data[REQUEST_TYPE])}\n"
     "To confirm the above information and submit the request, send /confirm. To cancel, send /cancel."
   )

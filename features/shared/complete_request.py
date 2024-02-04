@@ -17,6 +17,9 @@ async def complete_request(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
     additional_completion_text: str = "",
+    # TODO: migrate REQUEST_TYPE_REQUIRES_APPROVAL and 
+    # REQUEST_TYPE_REQUIRES_INDEPENDENT_APPROVAL options to here
+    # (why did I even hardcode them for specific request types anyway?)
 ):
   user_id = update.effective_user.id
   fields = context.user_data[request_type]
